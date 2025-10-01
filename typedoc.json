@@ -1,0 +1,40 @@
+{
+    "entryPoints": [
+        "packages/annotations/src/index.ts",
+        "packages/axes/src/index.ts",
+        "packages/coordinates/src/index.ts",
+        "packages/core/src/index.ts",
+        "packages/indicators/src/index.ts",
+        "packages/interactive/src/index.ts",
+        "packages/scales/src/index.ts",
+        "packages/series/src/index.ts",
+        "packages/tooltip/src/index.ts",
+        "packages/utils/src/index.ts"
+    ],
+    "out": "typedocs",
+    "name": "Reincharts",
+    "theme": "default",
+    "readme": "README.md",
+    "includeVersion": true,
+    "excludeExternals": true,
+    "excludePrivate": false,
+    "excludeProtected": false,
+    "excludeInternal": false,
+    "categorizeByGroup": false,
+    "navigation": {
+        "includeCategories": false,
+        "includeGroups": false
+    },
+    "treatWarningsAsErrors": false,
+    "validation": {
+        "notExported": false,
+        "invalidLink": false,
+        "notDocumented": false
+    },
+    "searchInComments": true,
+    "searchInDocuments": true,
+    "cleanOutputDir": true,
+    "skipErrorChecking": true,
+    "basePath": ".",
+    "customFooterHtml": "Built by Reincharts. Released under the <a href=\"https://opensource.org/licenses/MIT\" target=\"_blank\" rel=\"noopener noreferrer\">MIT License</a>"
+}

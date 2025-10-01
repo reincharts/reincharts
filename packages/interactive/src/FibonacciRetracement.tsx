@@ -1,0 +1,338 @@
+import * as React from "react";
+import { isDefined, isNotDefined } from "@reincharts/core";
+import { HoverTextNearMouse, MouseLocationIndicator } from "./components";
+import { generateID, isHoverForInteractiveType, saveNodeType, terminate } from "./utils";
+import { EachFibRetracement } from "./wrapper";
+import { flushSync } from "react-dom";
+
+export interface FibonacciRetracementProps {
+    /** Whether the Fibonacci retracement tool is enabled for interaction. */
+    readonly enabled: boolean;
+    /** Callback function triggered when retracement drawing starts. */
+    readonly onStart?: (moreProps: any) => void;
+    /** Callback function triggered when retracement drawing is completed. newRetracements is a
+     *  list of all retracements with the new/updated retracement included.
+     */
+    readonly onComplete?: (e: React.MouseEvent, newRetracements: any[], moreProps: any) => void;
+    /** Type of retracement line behavior. */
+    readonly type:
+        | "EXTEND" // extends from -Infinity to +Infinity
+        | "RAY" // extends to +/-Infinity in one direction
+        | "BOUND"; // extends between the set bounds
+    /** Configuration object for hover text display. */
+    readonly hoverText: object;
+    /** Stroke color for the current position indicator. */
+    readonly currentPositionStroke?: string;
+    /** Width of the current position indicator stroke. */
+    readonly currentPositionStrokeWidth?: number;
+    /** Opacity of the current position indicator. */
+    readonly currentPositionOpacity?: number;
+    /** Radius of the current position indicator. */
+    readonly currentPositionRadius?: number;
+    /** Array of Fibonacci retracement objects that get drawn. */
+    readonly retracements: any[];
+    /** Styling configuration for the retracement appearance. */
+    readonly appearance: {
+        readonly strokeStyle: string;
+        readonly strokeWidth: number;
+        readonly fontFamily: string;
+        readonly fontSize: number;
+        readonly fontFill: string;
+        readonly edgeStroke: string;
+        readonly edgeFill: string;
+        readonly nsEdgeFill: string;
+        readonly edgeStrokeWidth: number;
+        readonly r: number;
+    };
+}
+
+interface CurrentRetracement {
+    x1: number;
+    y1: number;
+    x2?: number;
+    y2?: number;
+}
+
+interface OverrideRetracement {
+    index: number;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
+interface FibonacciRetracementState {
+    current?: CurrentRetracement;
+    override?: OverrideRetracement;
+}
+
+export class FibonacciRetracement extends React.Component<FibonacciRetracementProps, FibonacciRetracementState> {
+    public static displayName = "FibonacciRetracement";
+
+    public static defaultProps = {
+        enabled: true,
+        type: "RAY",
+        retracements: [],
+        hoverText: {
+            ...HoverTextNearMouse.defaultProps,
+            enable: true,
+            bgHeight: "auto",
+            bgWidth: "auto",
+            text: "Click to select object",
+            selectedText: "",
+        },
+        currentPositionStroke: "#000000",
+        currentPositionOpacity: 1,
+        currentPositionStrokeWidth: 3,
+        currentPositionRadius: 4,
+        appearance: {
+            strokeStyle: "#000000",
+            strokeWidth: 1,
+            fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
+            fontSize: 11,
+            fontFill: "#000000",
+            edgeStroke: "#000000",
+            edgeFill: "#FFFFFF",
+            nsEdgeFill: "#000000",
+            edgeStrokeWidth: 1,
+            r: 5,
+        },
+    };
+
+    // @ts-ignore
+    private getSelectionState: any;
+    private mouseMoved: any;
+    private saveNodeType: any;
+    // @ts-ignore
+    private terminate: any;
+
+    public constructor(props: FibonacciRetracementProps) {
+        super(props);
+
+        this.handleEdge1Drag = this.handleEdge1Drag.bind(this);
+        this.handleEdge2Drag = this.handleEdge2Drag.bind(this);
+
+        this.terminate = terminate.bind(this);
+        this.getSelectionState = isHoverForInteractiveType("retracements").bind(this);
+
+        this.saveNodeType = saveNodeType.bind(this);
+        this.state = {};
+    }
+
+    public render() {
+        const { current, override } = this.state;
+
+        const {
+            appearance,
+            currentPositionStroke,
+            currentPositionOpacity,
+            currentPositionStrokeWidth,
+            currentPositionRadius = FibonacciRetracement.defaultProps.currentPositionRadius,
+            retracements,
+            type,
+        } = this.props;
+
+        const { enabled, hoverText } = this.props;
+        const overrideIndex = isDefined(override) ? override.index : null;
+        const hoverTextWidthDefault = {
+            ...FibonacciRetracement.defaultProps.hoverText,
+            ...hoverText,
+        };
+
+        const currentRetracement =
+            isDefined(current) && isDefined(current.x2) && isDefined(current.y2) ? (
+                <EachFibRetracement
+                    interactive={false}
+                    type={type}
+                    appearance={appearance}
+                    hoverText={hoverTextWidthDefault}
+                    x1={current.x1}
+                    y1={current.y1}
+                    x2={current.x2}
+                    y2={current.y2}
+                />
+            ) : null;
+        return (
+            <g>
+                {retracements.map((each, idx) => {
+                    const eachAppearance = isDefined(each.appearance)
+                        ? { ...appearance, ...each.appearance }
+                        : appearance;
+
+                    const eachHoverText = isDefined(each.hoverText)
+                        ? { ...hoverTextWidthDefault, ...each.hoverText }
+                        : hoverTextWidthDefault;
+
+                    return (
+                        <EachFibRetracement
+                            key={idx}
+                            ref={this.saveNodeType(idx)}
+                            index={idx}
+                            type={each.type}
+                            selected={each.selected}
+                            {...(idx === overrideIndex ? override : each)}
+                            hoverText={eachHoverText}
+                            appearance={eachAppearance}
+                            onDrag={this.handleDrag}
+                            onDragComplete={this.handleDragComplete}
+                        />
+                    );
+                })}
+                {currentRetracement}
+                <MouseLocationIndicator
+                    enabled={enabled}
+                    snap={false}
+                    r={currentPositionRadius}
+                    stroke={currentPositionStroke}
+                    opacity={currentPositionOpacity}
+                    strokeWidth={currentPositionStrokeWidth}
+                    onMouseDown={this.handleStart}
+                    onClick={this.handleEnd}
+                    onMouseMove={this.handleDrawRetracement}
+                />
+            </g>
+        );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    private readonly handleDrawRetracement = (_event: React.MouseEvent, xyValue: number[], _moreProps: any) => {
+        const { current } = this.state;
+        if (isDefined(current) && isDefined(current.x1)) {
+            this.mouseMoved = true;
+
+            flushSync(() => {
+                this.setState({
+                    current: {
+                        ...current,
+                        x2: xyValue[0],
+                        y2: xyValue[1],
+                    },
+                });
+            });
+        }
+    };
+
+    private readonly handleEdge1Drag = (_: React.MouseEvent, echo: any, newXYValue: any, origXYValue: any) => {
+        const { retracements } = this.props;
+        const { index } = echo;
+
+        const dx = origXYValue.x1Value - newXYValue.x1Value;
+
+        flushSync(() => {
+            this.setState({
+                override: {
+                    index,
+                    x1: retracements[index].x1 - dx,
+                    y1: retracements[index].y1,
+                    x2: retracements[index].x2,
+                    y2: retracements[index].y2,
+                },
+            });
+        });
+    };
+
+    private readonly handleDrag = (_: React.MouseEvent, index: any, xy: any) => {
+        flushSync(() => {
+            this.setState({
+                override: {
+                    index,
+                    ...xy,
+                },
+            });
+        });
+    };
+
+    private readonly handleEdge2Drag = (_: React.MouseEvent, echo: any, newXYValue: any, origXYValue: any) => {
+        const { retracements } = this.props;
+        const { index } = echo;
+
+        const dx = origXYValue.x2Value - newXYValue.x2Value;
+
+        flushSync(() => {
+            this.setState({
+                override: {
+                    index,
+                    x1: retracements[index].x1,
+                    y1: retracements[index].y1,
+                    x2: retracements[index].x2 - dx,
+                    y2: retracements[index].y2,
+                },
+            });
+        });
+    };
+
+    private readonly handleDragComplete = (e: React.MouseEvent, moreProps: any) => {
+        const { retracements } = this.props;
+        const { override } = this.state;
+        if (isDefined(override)) {
+            const { index, ...rest } = override;
+
+            const newRetracements = retracements.map((each, idx) =>
+                idx === index ? { ...each, ...rest, selected: true } : each,
+            );
+            this.setState(
+                {
+                    override: undefined,
+                },
+                () => {
+                    const { onComplete } = this.props;
+                    if (onComplete !== undefined) {
+                        onComplete(e, newRetracements, moreProps);
+                    }
+                },
+            );
+        }
+    };
+
+    private readonly handleStart = (e: React.MouseEvent, xyValue: any, moreProps: any) => {
+        const { current } = this.state;
+        if (isNotDefined(current) || isNotDefined(current?.x1)) {
+            this.mouseMoved = false;
+            this.setState(
+                {
+                    current: {
+                        x1: xyValue[0],
+                        y1: xyValue[1],
+                        x2: undefined,
+                        y2: undefined,
+                    },
+                },
+                () => {
+                    const { onStart } = this.props;
+                    if (onStart !== undefined) {
+                        onStart(moreProps);
+                    }
+                },
+            );
+        }
+    };
+
+    private readonly handleEnd = (e: React.MouseEvent, xyValue: any, moreProps: any) => {
+        const { retracements, appearance, type } = this.props;
+        const { current } = this.state;
+
+        if (this.mouseMoved && isDefined(current?.x1)) {
+            const newRetracements = retracements.concat({
+                ...current,
+                x2: xyValue[0],
+                y2: xyValue[1],
+                selected: true,
+                id: generateID(),
+                appearance,
+                type,
+            });
+
+            this.setState(
+                {
+                    current: undefined,
+                },
+                () => {
+                    const { onComplete } = this.props;
+                    if (onComplete !== undefined) {
+                        onComplete(e, newRetracements, moreProps);
+                    }
+                },
+            );
+        }
+    };
+}

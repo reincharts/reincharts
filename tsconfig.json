@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "declaration": true,
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "react-jsx",
+        "types": ["react", "react-dom"],
+        "module": "esnext",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "outDir": "lib",
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2022"
+    },
+    "include": [
+        "packages/*/src/**/*"
+    ],
+    "exclude": [
+        "**/node_modules/**",
+        "**/lib/**",
+        "**/dist/**"
+    ]
+}

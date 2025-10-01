@@ -1,0 +1,47 @@
+{
+    "name": "@reincharts/utils",
+    "version": "1.0.0",
+    "description": "Utils for reincharts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "./lib/index.js",
+    "types": "./lib/index.d.ts",
+    "files": [
+        "lib",
+        "src"
+    ],
+    "sideEffects": false,
+    "author": "Reincharts",
+    "keywords": [
+        "chart",
+        "charts",
+        "charting",
+        "canvas",
+        "svg",
+        "interactive",
+        "react",
+        "d3"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/reincharts/reincharts.git"
+    },
+    "bugs": {
+        "url": "https://github.com/reincharts/reincharts/issues"
+    },
+    "scripts": {
+        "build": "npm run clean && npm run compile",
+        "clean": "rimraf lib",
+        "compile": "tsc -p tsconfig.json",
+        "watch": "tsc -p tsconfig.json --watch --preserveWatchOutput"
+    },
+    "dependencies": {
+        "react-virtualized-auto-sizer": "^1.0.26"
+    },
+    "peerDependencies": {
+        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
+    }
+}
