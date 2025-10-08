@@ -1,56 +1,30 @@
 # Reincharts
 
-Charts dedicated to finance.
-
-The aim with this project is create interactive charts.
-
-## Features
-
-- integrates multiple chart types
-- over 60 technical indicators and overlays
-- drawing objects
-
-### Chart types
-
-- Scatter
-- Area
-- Line
-- Candlestick
-- OHLC
-- HeikenAshi
-- Renko
-- Kagi
-- Point & Figure
-
-### Indicators
-
-- EMA, SMA, WMA, TMA
-- Bollinger band
-- SAR
-- MACD
-- RSI
-- ATR
-- Stochastic (fast, slow, full)
-- ForceIndex
-- ElderRay
-- Elder Impulse
-
-### Interactive Indicators
-
-- Trendline
-- Fibonacci Retracements
-- Gann Fan
-- Channel
-- Linear regression channel
-
----
+Reincharts is a set of composable React components built for interactive charting.
 
 ## Installation
 
-```sh
+```bash
 npm install reincharts
 ```
 
-## LICENSE
+This is the main aggregated package that re-exports all individual `@reincharts/*` packages. You can also install individual packages if you prefer:
 
-[MIT](./LICENSE)
+- `@reincharts/core` - ChartCanvas, Chart, Generic components
+- `@reincharts/axes` - XAxis, YAxis
+- `@reincharts/series` - LineSeries, CandlestickSeries, BarSeries, etc.
+- `@reincharts/coordinates` - CrossHairCursor, MouseCoordinateX/Y, EdgeIndicator
+- `@reincharts/tooltip` - OHLCTooltip, SingleValueTooltip, MACDTooltip
+- `@reincharts/interactive` - TrendLine, Brush, ZoomButtons, Fibonacci tools
+- `@reincharts/annotations` - Label, BarAnnotation, SvgPathAnnotation
+- `@reincharts/scales` - Discontinuous time scale providers
+- `@reincharts/indicators` - Indicator helpers
+- `@reincharts/utils` - withSize, withDeviceRatio HOCs
+
+## Documentation
+
+Visit [reincharts.com](https://reincharts.com) to view the documentation.
+
+## License
+
+[MIT](https://github.com/reincharts/reincharts/blob/main/LICENSE)

@@ -9,7 +9,7 @@ import { buttonVariants } from "@/app/components/ui/button";
 import CandlestickSeries from "@/app/guides/getting-started/snippets/Step5_CandlestickSeries";
 
 export const metadata: Metadata = {
-    title: "Interactive React Charting Library",
+    title: "React Interactive Charting Library",
     description:
         "Build performant interactive charts with React. Open-source library featuring customizable chart components.",
     alternates: {

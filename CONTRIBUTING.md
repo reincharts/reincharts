@@ -37,6 +37,8 @@ packages/
 └── utils/          # Shared utility functions and helpers
 ```
 
+The documentation [guides](https://reincharts.com/guides/) are a good place to look for a high level overview of how the library works. 
+
 It has these build scripts:
 
 | Build Command | Description |

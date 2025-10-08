@@ -1,7 +1,7 @@
 {
     "name": "reincharts",
     "version": "1.0.0",
-    "description": "React charts specific to finance.",
+    "description": "Interactive charts for React.",
     "main": "./lib/index.js",
     "types": "./lib/index.d.ts",
     "files": [
