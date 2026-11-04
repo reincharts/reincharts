@@ -1,0 +1,56 @@
+---
+title: Next.js & Vite
+description: Using Reincharts with server rendering frameworks and bundlers.
+---
+
+## Next.js (App Router)
+
+Charts draw on `<canvas>` and use browser APIs, so they must be **client components**. Add `"use client"` at the top of
+the file that renders `<ChartCanvas>`:
+
+```tsx title="components/price-chart.tsx"
+"use client";
+import { ChartCanvas, Pane } from "@reincharts/core";
+// ...
+```
+
+The server can still render the surrounding page and pass data as props. Dates do not survive the server → client
+boundary as `Date` objects, so send timestamps (or ISO strings) and convert them on the client:
+
+```tsx
+"use client";
+export function PriceChart({ rows }: { rows: { t: number; o: number; h: number; l: number; c: number }[] }) {
+  const bars = useMemo(
+    () => rows.map((r) => ({ date: new Date(r.t), open: r.o, high: r.h, low: r.l, close: r.c })),
+    [rows],
+  );
+  return <ChartCanvas data={bars}>{/* ... */}</ChartCanvas>;
+}
+```
+
+`<ChartCanvas>` measures its container after mounting. To skip server rendering of the chart entirely (for example to
+avoid a blank frame of the wrong size), load it with `next/dynamic`:
+
+```tsx
+import dynamic from "next/dynamic";
+
+const PriceChart = dynamic(() => import("@/components/price-chart"), { ssr: false });
+```
+
+## Vite
+
+Nothing special is needed: install the packages and render the chart. With Vite + React and TypeScript, use
+`"moduleResolution": "bundler"` in `tsconfig.json`.
+
+## Sizing
+
+Without `width` / `height` props the chart fills its parent and follows its size with a `ResizeObserver`. The parent
+needs a height: a fixed one, `flex: 1` inside a flex column, or a grid cell.
+
+```tsx
+<div style={{ height: "60vh" }}>
+  <ChartCanvas data={bars}>{/* ... */}</ChartCanvas>
+</div>
+```
+
+Pass `ratio` to override `window.devicePixelRatio` (for example `ratio={1}` in tests).

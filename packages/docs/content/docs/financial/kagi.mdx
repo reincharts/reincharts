@@ -1,0 +1,25 @@
+---
+title: Kagi
+description: Reversal lines whose thickness changes on breakouts.
+examples: /examples/kagi
+api: /api/series/kagi-series
+---
+
+<ComponentPreview name="kagi" />
+
+## Usage
+
+`kagi()` from `@reincharts/indicators` turns bars into kagi lines, drawn by `<KagiSeries>`. The line keeps going in
+one direction until the price reverses by the reversal amount. It turns thick (**yang**) when it breaks above the
+previous shoulder and thin (**yin**) when it breaks below the previous waist.
+
+```tsx
+import { KagiSeries } from "@reincharts/series";
+import { kagi } from "@reincharts/indicators";
+
+const lines = useMemo(() => kagi(bars, { reversal: 3, reversalType: "percent" }), [bars]);
+
+<ChartCanvas data={lines}>
+  <KagiSeries />
+</ChartCanvas>;
+```

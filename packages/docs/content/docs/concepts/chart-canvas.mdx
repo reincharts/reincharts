@@ -1,0 +1,115 @@
+---
+title: ChartCanvas & panes
+description: The chart root, vertically stacked panes and how components plug into the engine.
+examples: /examples/panes
+api: /api/core/chart-canvas
+---
+
+A chart is a tree of components:
+
+```tsx
+<ChartCanvas data={bars}>
+  {/* data, x axis viewport, render loop */}
+  <Pane id="price" size={3}>
+    {/* a vertical slot with its own price scales */}
+    <CandlestickSeries />
+    <YAxis />
+  </Pane>
+  <Pane id="momentum">
+    <LineSeries y="momentum" />
+    <YAxis />
+  </Pane>
+  <XAxis /> {/* shared by every pane */}
+</ChartCanvas>
+```
+
+<ComponentPreview name="concept-panes" height={420} />
+
+## ChartCanvas
+
+`<ChartCanvas>` creates a `ChartEngine`: a plain TypeScript object that owns the data, the horizontal viewport, the
+panes and their price scales, the layout and a single `requestAnimationFrame` render loop. Children register
+_renderables_ with it (anything that draws) and the engine draws them in `zIndex` order on two stacked canvases:
+
+- **scene**: grid, series, annotations, drawings, axes. Redrawn when data, the viewport or the scales change.
+- **top**: crosshair, hover highlights, in-progress drawings. Redrawn on every pointer move without touching the scene.
+
+Without `width` / `height` the chart fills its parent and follows its size. Every prop (data mapping, initial view,
+interaction, sync, callbacks) is listed in the [ChartCanvas API reference](/api/core/chart-canvas).
+
+### The engine ref
+
+The ref of `<ChartCanvas>` is the engine itself, which exposes imperative controls:
+
+```tsx
+const chart = useRef<ChartEngine<Bar>>(null);
+
+<ChartCanvas ref={chart} data={bars}>
+  {/* ... */}
+</ChartCanvas>;
+
+chart.current?.zoomIn();
+chart.current?.zoomOut();
+chart.current?.resetView(); // back to the initial view, re-enables autoscale
+chart.current?.fitContent(); // show all data
+chart.current?.scrollToRealtime(); // jump to the newest bar
+chart.current?.setVisibleRange(new Date("2016-01-01"), new Date("2016-06-30"));
+```
+
+<ComponentPreview name="concept-engine-ref" height={400} />
+
+The engine also has `resetPaneSizes()` and `screenshot()` (a PNG data URL).
+
+## Panes
+
+Panes stack vertically and split the height by their `size` (stretch factor, default 1) unless a fixed `height` is
+given; `minHeight` and `order` refine the layout. Give panes a stable `id` when something refers to them (drawings,
+saved layouts, legends of another pane).
+
+Users resize panes by dragging the separator between two of them, and double-clicking a separator maximizes the pane
+below it (double-click again to restore). Dragged sizes are kept until you call `resetPaneSizes()` on the engine, which
+restores every pane's `size` / `height` props:
+
+```tsx
+<button onClick={() => chart.current?.resetPaneSizes()}>Reset panes</button>
+```
+
+Components outside any `<Pane>` (series placed directly in `<ChartCanvas>`) go to an implicit `"main"` pane, so the
+smallest chart needs no `<Pane>` at all.
+
+Each pane has named price scales: `"right"` by default, and any other id you reference from a series' `scale` prop.
+See [Price scales](/docs/concepts/price-scales).
+
+## Overlays
+
+`<ChartOverlay>` positions regular DOM over a pane's plot area (or the whole chart), for legends, buttons or any HTML.
+Pointer events pass through to the chart unless you enable them on your own elements.
+
+```tsx
+<ChartCanvas data={bars}>
+  <Pane>
+    <CandlestickSeries />
+    <YAxis />
+    <ChartOverlay>
+      <div style={{ padding: 8 }}>MSFT · 1D</div>
+    </ChartOverlay>
+  </Pane>
+  <XAxis />
+</ChartCanvas>
+```
+
+<ComponentPreview name="concept-overlay" height={320} />
+
+## Hooks
+
+Components inside a chart can talk to the engine with hooks. These are the building blocks of every series, axis and
+tool, and of your own components:
+
+| Hook                                | Purpose                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| `useChart()`                        | The `ChartEngine` of the closest `<ChartCanvas>`.                                             |
+| `usePaneId()`                       | Id of the closest `<Pane>` (`"main"` outside panes).                                          |
+| `useChartState(selector, isEqual?)` | Subscribe to layout, visible range or crosshair; re-renders only when the selection changes.  |
+| `useRenderable(spec)`               | Register something that draws on the canvas. See [Custom series](/docs/guides/custom-series). |
+| `useHitTarget(spec)`                | Register an interactive object (hover, click, drag).                                          |
+| `useChartEvent(type, handler)`      | Listen to chart events: pointer events in chart coordinates, `keydown`, `rangechange`...      |

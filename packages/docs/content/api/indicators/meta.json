@@ -1,0 +1,20 @@
+{
+  "title": "@reincharts/indicators",
+  "pages": [
+    "---Components---",
+    "atr",
+    "bollinger-bands",
+    "elder-ray",
+    "force-index",
+    "indicator",
+    "macd",
+    "moving-average",
+    "rsi",
+    "sar",
+    "stochastic",
+    "---Reference---",
+    "functions",
+    "constants",
+    "types"
+  ]
+}

@@ -1,183 +1,134 @@
+import { useChart, useChartEvent, useRenderable, withAlpha, type ChartPointerEvent } from "@reincharts/core";
 import * as React from "react";
-import { flushSync } from "react-dom";
-import { getStrokeDasharrayCanvas, getMouseCanvas, GenericChartComponent, strokeDashTypes } from "@reincharts/core";
+
+/** Range selected with `<Brush>`. */
+export interface BrushRange {
+    /** Pane the brush was drawn in. */
+    readonly paneId: string;
+    /** X values (timestamps / numbers) of the left and right edges. */
+    readonly from: number;
+    readonly to: number;
+    /** First / last data index inside the range. */
+    readonly startIndex: number;
+    readonly endIndex: number;
+    /** Price range (low, high) of the rectangle. */
+    readonly priceFrom: number;
+    readonly priceTo: number;
+}
 
 export interface BrushProps {
-    /** Enable or disable the brush selection tool. */
-    readonly enabled: boolean;
-    /** Callback function called when the brush selection ends.
-     * Returns a start and end value to compute new chart extents.
-     */
-    readonly onBrush: ({ start, end }: any, moreProps: any) => void;
-    /** Color of the brush selection border. */
-    readonly strokeStyle?: string;
-    /** Fill color of the brush selection area. */
-    readonly fillStyle?: string;
-    /** Dash style for the brush border. */
-    readonly strokeDashArray?: strokeDashTypes;
-    /** Width of the brush selection border. */
-    readonly strokeWidth?: number;
+    /** Capture drags (default true). Toggle it to switch between panning and brushing. */
+    readonly enabled?: boolean;
+    /** "x" selects a time range over the full pane height, "xy" a rectangle. Default "x". */
+    readonly mode?: "x" | "xy";
+    /** Zoom to the selected x range on release. Default true. */
+    readonly zoom?: boolean;
+    /** Called with the selected range on release. */
+    readonly onSelect?: (range: BrushRange) => void;
+    /** Border color. Defaults to the theme drawing color. */
+    readonly color?: string;
+    /** Fill color. Defaults to the border color at 12% opacity. */
+    readonly fill?: string;
 }
 
-interface BrushState {
-    end?: any;
-    rect: any | null;
-    selected?: boolean;
-    start?: any;
-    x1y1?: any;
-}
+/** Drag a rectangle to zoom into / report a range. */
+export function Brush({ enabled = true, mode = "x", zoom = true, onSelect, color, fill }: BrushProps) {
+    const engine = useChart();
+    const rect = React.useRef<{ paneId: string; x0: number; y0: number; x1: number; y1: number } | null>(null);
 
-export class Brush extends React.Component<BrushProps, BrushState> {
-    public static displayName = "Brush";
-
-    public static defaultProps = {
-        strokeStyle: "#000000",
-        fillStyle: "rgba(150, 150, 150, 0.3)",
-        strokeDashArray: "ShortDash",
-        strokeWidth: 1,
+    const local = (e: ChartPointerEvent, paneId: string) => {
+        const pane = engine.layout.panes.find((p) => p.id === paneId);
+        return { x: e.x, y: e.canvasY - (pane?.top ?? 0) };
     };
 
-    private zoomHappening?: boolean;
+    useChartEvent(
+        "pointerdown",
+        enabled
+            ? (e) => {
+                  if (e.defaultPrevented || !e.paneId) {
+                      return;
+                  }
+                  e.preventDefault();
+                  rect.current = { paneId: e.paneId, x0: e.x, y0: e.y, x1: e.x, y1: e.y };
+              }
+            : undefined,
+    );
+    useChartEvent(
+        "drag",
+        enabled
+            ? (e) => {
+                  const r = rect.current;
+                  if (r) {
+                      const p = local(e, r.paneId);
+                      r.x1 = p.x;
+                      r.y1 = p.y;
+                      engine.invalidate("top");
+                  }
+              }
+            : undefined,
+    );
+    useChartEvent(
+        "dragend",
+        enabled
+            ? () => {
+                  const r = rect.current;
+                  rect.current = null;
+                  engine.invalidate("top");
+                  if (!r || Math.abs(r.x1 - r.x0) < 3) {
+                      return;
+                  }
+                  const scale = engine.getScale(r.paneId);
+                  const l0 = engine.logicalOfX(Math.min(r.x0, r.x1));
+                  const l1 = engine.logicalOfX(Math.max(r.x0, r.x1));
+                  const [a, b] = [l0, l1].sort((p, q) => p - q);
+                  const range: BrushRange = {
+                      paneId: r.paneId,
+                      from: engine.timeOfLogical(a),
+                      to: engine.timeOfLogical(b),
+                      startIndex: Math.max(0, engine.indexOfX(engine.xOfLogical(a))),
+                      endIndex: engine.indexOfX(engine.xOfLogical(b)),
+                      priceFrom: scale.fromY(Math.max(r.y0, r.y1)),
+                      priceTo: scale.fromY(Math.min(r.y0, r.y1)),
+                  };
+                  if (zoom) {
+                      engine.setLogicalRange(a, b);
+                  }
+                  onSelect?.(range);
+              }
+            : undefined,
+    );
+    useChartEvent(
+        "click",
+        enabled
+            ? () => {
+                  rect.current = null;
+              }
+            : undefined,
+    );
 
-    public constructor(props: BrushProps) {
-        super(props);
-
-        this.terminate = this.terminate.bind(this);
-        this.state = {
-            rect: null,
-        };
-    }
-
-    public terminate() {
-        this.zoomHappening = false;
-        this.setState({
-            x1y1: null,
-            start: null,
-            end: null,
-            rect: null,
-        });
-    }
-
-    public render() {
-        const { enabled } = this.props;
-        if (!enabled) {
-            return null;
-        }
-
-        return (
-            <GenericChartComponent
-                disablePan={enabled}
-                canvasToDraw={getMouseCanvas}
-                canvasDraw={this.drawOnCanvas}
-                onMouseDown={this.handleZoomStart}
-                onMouseMove={this.handleDrawSquare}
-                onClick={this.handleZoomComplete}
-                drawOn={["mousemove", "pan", "drag"]}
-            />
-        );
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D) => {
-        const { rect } = this.state;
-        if (rect === null) {
-            return;
-        }
-
-        const { x, y, height, width } = rect;
-        const {
-            strokeStyle = Brush.defaultProps.strokeStyle,
-            fillStyle = Brush.defaultProps.fillStyle,
-            strokeDashArray,
-            strokeWidth = Brush.defaultProps.strokeWidth,
-        } = this.props;
-
-        const dashArray = getStrokeDasharrayCanvas(strokeDashArray);
-
-        ctx.strokeStyle = strokeStyle;
-        ctx.lineWidth = strokeWidth;
-        ctx.fillStyle = fillStyle;
-        ctx.setLineDash(dashArray);
-        ctx.beginPath();
-        ctx.fillRect(x, y, width, height);
-        ctx.strokeRect(x, y, width, height);
-    };
-
-    private readonly handleZoomStart = (_: React.MouseEvent, moreProps: any) => {
-        this.zoomHappening = false;
-        const {
-            mouseXY: [, mouseY],
-            currentItem,
-            chartConfig: { yScale },
-            xAccessor,
-            xScale,
-        } = moreProps;
-
-        const x1y1 = [xScale(xAccessor(currentItem)), mouseY];
-
-        this.setState({
-            selected: true,
-            x1y1,
-            start: {
-                item: currentItem,
-                xValue: xAccessor(currentItem),
-                yValue: yScale.invert(mouseY),
-            },
-        });
-    };
-
-    private readonly handleDrawSquare = (_: React.MouseEvent, moreProps: any) => {
-        if (this.state.x1y1 == null) {
-            return;
-        }
-
-        this.zoomHappening = true;
-
-        const {
-            mouseXY: [, mouseY],
-            currentItem,
-            chartConfig: { yScale },
-            xAccessor,
-            xScale,
-        } = moreProps;
-
-        const [x2, y2] = [xScale(xAccessor(currentItem)), mouseY];
-
-        const {
-            x1y1: [x1, y1],
-        } = this.state;
-
-        const x = Math.min(x1, x2);
-        const y = Math.min(y1, y2);
-        const height = Math.abs(y2 - y1);
-        const width = Math.abs(x2 - x1);
-
-        flushSync(() => {
-            this.setState({
-                selected: true,
-                end: {
-                    item: currentItem,
-                    xValue: xAccessor(currentItem),
-                    yValue: yScale.invert(mouseY),
-                },
-                rect: {
-                    x,
-                    y,
-                    height,
-                    width,
-                },
-            });
-        });
-    };
-
-    private readonly handleZoomComplete = (_: React.MouseEvent, moreProps: any) => {
-        if (this.zoomHappening) {
-            const { onBrush } = this.props;
-            if (onBrush !== undefined) {
-                const { start, end } = this.state;
-                onBrush({ start, end }, moreProps);
+    useRenderable({
+        pane: null,
+        layer: "top",
+        zIndex: 60,
+        visible: enabled,
+        draw(ctx, { theme, layout }) {
+            const r = rect.current;
+            const pane = r && layout.panes.find((p) => p.id === r.paneId);
+            if (!r || !pane) {
+                return;
             }
-        }
-
-        this.terminate();
-    };
+            const stroke = color ?? theme.drawing.color;
+            const left = layout.plotLeft + Math.min(r.x0, r.x1);
+            const w = Math.abs(r.x1 - r.x0);
+            const top = pane.top + (mode === "xy" ? Math.min(r.y0, r.y1) : 0);
+            const h = mode === "xy" ? Math.abs(r.y1 - r.y0) : pane.height;
+            ctx.fillStyle = fill ?? withAlpha(stroke, 0.12);
+            ctx.fillRect(left, top, w, h);
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 3]);
+            ctx.strokeRect(Math.round(left) + 0.5, Math.round(top) + 0.5, Math.round(w), Math.round(h) - 1);
+        },
+    });
+    return null;
 }

@@ -1,154 +1,89 @@
-import * as React from "react";
-import { isDefined, isNotDefined, getAxisCanvas, GenericChartComponent } from "@reincharts/core";
+import { isFiniteNumber } from "@reincharts/core";
+import { ohlcLegend } from "./ohlc";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface KagiSeriesProps {
-    /**
-     * Current value stroke
-     */
-    readonly currentValueStroke?: string;
-    /**
-     * Stroke values.
-     */
-    readonly stroke: {
-        yang: string;
-        yin: string;
-    };
-    /**
-     * Stroke width.
-     */
-    readonly strokeWidth?: number;
-    /**
-     * Accessor for the close value in the data
-     */
-    readonly closeAccessor?: (data: any) => number | undefined;
-    /**
-     * Accessor for the open value in the data
-     */
-    readonly openAccessor?: (data: any) => number | undefined;
-}
+export type KagiType = "yang" | "yin";
 
 /**
- * `KagiSeries` tracks price movement mostly independantly of time.
+ * One vertical kagi line, as produced by the kagi transform. The line runs from
+ * `open` to `close`; it starts as `startAs` and, when it breaks the previous peak / trough, switches
+ * to `changeTo` at price `changePoint`. Consecutive lines are joined by a horizontal shoulder / waist at
+ * the next line's `open` (= this line's `close`). Extra fields (high, low, volume, current, reverseAt...) are ignored.
  */
-export class KagiSeries extends React.Component<KagiSeriesProps> {
-    public static defaultProps = {
-        currentValueStroke: "#000000",
-        stroke: {
-            yang: "#26a675ff",
-            yin: "#e93b3bff",
-        },
-        strokeWidth: 2,
-        closeAccessor: (d: any) => d.close,
-        openAccessor: (d: any) => d.open,
-    };
+export interface KagiDatum {
+    readonly date?: Date | number;
+    readonly open: number;
+    readonly close: number;
+    /** Type of the line at its start. */
+    readonly startAs: KagiType;
+    /** Type the line switches to at `changePoint`, if it breaks the previous peak / trough. */
+    readonly changeTo?: KagiType;
+    /** Price where the type changes. */
+    readonly changePoint?: number;
+}
 
-    public render() {
-        return <GenericChartComponent canvasToDraw={getAxisCanvas} canvasDraw={this.drawOnCanvas} drawOn={["pan"]} />;
-    }
+export interface KagiSeriesProps extends SeriesProps {
+    /** Yang (thick, rising) line color. Defaults to theme.up. */
+    readonly yangColor?: string;
+    /** Yin (thin, falling) line color. Defaults to theme.down. */
+    readonly yinColor?: string;
+    /** Yang line width. Default 3. */
+    readonly yangWidth?: number;
+    /** Yin line width. Default 1.5. */
+    readonly yinWidth?: number;
+}
 
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const { stroke, strokeWidth, currentValueStroke, closeAccessor, openAccessor } = this.props;
-        const {
-            xAccessor,
-            xScale,
-            chartConfig: { yScale },
-            plotData,
-        } = moreProps;
-
-        const paths = this.helper(plotData, xAccessor, closeAccessor, openAccessor);
-
-        let begin = true;
-
-        paths.forEach((each) => {
-            // @ts-ignore
-            ctx.strokeStyle = stroke[each.type];
-            if (strokeWidth !== undefined) {
-                ctx.lineWidth = strokeWidth;
-            }
-
-            ctx.beginPath();
-            let prevX: any;
-            each.plot.forEach((d: any) => {
-                const [x1, y] = [xScale(d[0]), yScale(d[1])];
-                if (begin) {
-                    ctx.moveTo(x1, y);
-                    begin = false;
-                } else {
-                    if (isDefined(prevX)) {
-                        ctx.lineTo(prevX, y);
-                    }
-                    ctx.lineTo(x1, y);
+/** Kagi chart: thick yang and thin yin lines that switch when a line breaks the previous peak / trough. */
+export function KagiSeries({ yangColor, yinColor, yangWidth = 3, yinWidth = 1.5, ...rest }: KagiSeriesProps) {
+    const typeAt = (d: KagiDatum) => d.changeTo ?? d.startAs;
+    useSeries<KagiDatum>({
+        ...rest,
+        values: (d) => [d.open, d.close],
+        base: (d) => d.close,
+        color: (d, _i, theme) => (typeAt(d) === "yang" ? (yangColor ?? theme.up) : (yinColor ?? theme.down)),
+        legendValues: (d, _i, { format, color }) => ohlcLegend([d.open, d.close], format, color, ["O", "C"]),
+        draw(ctx, { data, start, end, x, y, theme }) {
+            const paths = { yang: new Path2D(), yin: new Path2D() };
+            const last: Record<KagiType, string> = { yang: "", yin: "" };
+            const segment = (type: KagiType, x1: number, y1: number, x2: number, y2: number) => {
+                const p = paths[type];
+                const key = `${x1},${y1}`;
+                if (last[type] !== key) {
+                    p.moveTo(x1, y1);
                 }
-                prevX = x1;
-            });
-            ctx.stroke();
-        });
-
-        const lastPlot = paths[paths.length - 1].plot;
-        const last = lastPlot[lastPlot.length - 1];
-        ctx.beginPath();
-        ctx.lineWidth = 1;
-
-        const [x, y1, y2] = [xScale(last[0]), yScale(last[2]), yScale(last[3])];
-        ctx.moveTo(x, y1);
-        ctx.lineTo(x + 10, y1);
-        ctx.stroke();
-
-        ctx.beginPath();
-        if (currentValueStroke !== undefined) {
-            ctx.strokeStyle = currentValueStroke;
-        }
-        ctx.moveTo(x - 10, y2);
-        ctx.lineTo(x, y2);
-        ctx.stroke();
-    };
-
-    private readonly helper = (plotData: any[], xAccessor: any, closeAccessor: any, openAccessor: any) => {
-        const kagiLine: any[] = [];
-        let kagi: {
-            added?: boolean;
-            plot?: any;
-            type?: any;
-        } = {};
-        let d = plotData[0];
-        let idx = xAccessor(d);
-
-        // tslint:disable-next-line: prefer-for-of
-        for (let i = 0; i < plotData.length; i++) {
-            d = plotData[i];
-
-            if (isNotDefined(closeAccessor(d))) {
-                continue;
+                p.lineTo(x2, y2);
+                last[type] = `${x2},${y2}`;
+            };
+            for (let i = Math.max(0, start); i <= end; i++) {
+                const d = data[i];
+                if (!d || !isFiniteNumber(d.open) || !isFiniteNumber(d.close)) {
+                    continue;
+                }
+                const cx = Math.round(x(i)) + 0.5;
+                const yo = Math.round(y(d.open)) + 0.5;
+                const type = d.startAs ?? "yang";
+                const prev = data[i - 1];
+                if (prev && isFiniteNumber(prev.close)) {
+                    segment(type, Math.round(x(i - 1)) + 0.5, yo, cx, yo);
+                }
+                const yc = Math.round(y(d.close)) + 0.5;
+                if (d.changeTo && isFiniteNumber(d.changePoint)) {
+                    const ym = Math.round(y(d.changePoint)) + 0.5;
+                    segment(type, cx, yo, cx, ym);
+                    segment(d.changeTo, cx, ym, cx, yc);
+                } else {
+                    segment(type, cx, yo, cx, yc);
+                }
             }
-            if (isNotDefined(kagi.type)) {
-                kagi.type = d.startAs;
+            ctx.setLineDash([]);
+            ctx.lineJoin = "miter";
+            ctx.lineCap = "square";
+            for (const type of ["yin", "yang"] as const) {
+                ctx.strokeStyle = type === "yang" ? (yangColor ?? theme.up) : (yinColor ?? theme.down);
+                ctx.lineWidth = type === "yang" ? yangWidth : yinWidth;
+                ctx.stroke(paths[type]);
             }
-            if (isNotDefined(kagi.plot)) {
-                kagi.plot = [];
-            }
-
-            idx = xAccessor(d);
-            kagi.plot.push([idx, openAccessor(d)]);
-
-            if (isDefined(d.changeTo)) {
-                kagi.plot.push([idx, d.changePoint]);
-                kagi.added = true;
-                kagiLine.push(kagi);
-
-                kagi = {
-                    type: d.changeTo,
-                    plot: [],
-                    added: false,
-                };
-                kagi.plot.push([idx, d.changePoint]);
-            }
-        }
-
-        if (!kagi.added) {
-            kagi.plot.push([idx, closeAccessor(d), d.current, d.reverseAt]);
-            kagiLine.push(kagi);
-        }
-
-        return kagiLine;
-    };
+        },
+    });
+    return null;
 }

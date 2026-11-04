@@ -1,0 +1,20 @@
+---
+title: Error bars
+description: Whiskers showing uncertainty around values.
+examples: /examples/error-bars
+api: /api/series/error-bar-series
+---
+
+Error bars show the uncertainty around a value, such as a standard deviation or a confidence interval.
+
+<ComponentPreview name="error-bars" />
+
+## Usage
+
+```tsx
+<ErrorBarSeries y="mean" error="sd" />
+<LineSeries y="mean" points />
+```
+
+`error` draws symmetric whiskers from `y - error` to `y + error`; use `low` / `high` for asymmetric ranges. Combine
+error bars with a line, bars or scatter points.

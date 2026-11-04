@@ -1,0 +1,23 @@
+---
+title: "Overview"
+description: "Drawing tools made for price charts: Fibonacci, Gann, channels, positions and price labels."
+examples: /examples/financial-drawing-tools
+api: /api/interactive
+---
+
+<ComponentPreview name="drawings-financial" height={520} />
+
+Price charts use the same drawing system as every other chart (`useDrawings`, `<Drawings>`, `<DrawingToolbar>` and
+`<DrawingStyleToolbar>`), plus a set of tools that only make sense for prices. Setup, editing, keyboard shortcuts and
+saving are covered in the [Drawing tools overview](/docs/components/drawing-tools); lines, freehand strokes, shapes,
+text and measurements are documented there too.
+
+| Group                                                    | Tools                                                |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| [Fibonacci & Gann](/docs/drawing-tools/fibonacci)        | Fib retracement, trend-based fib extension, Gann fan |
+| [Channels & pitchfork](/docs/drawing-tools/channels)     | Parallel channel, regression trend, pitchfork        |
+| [Positions](/docs/drawing-tools/positions)               | Long position, short position                        |
+| [Price labels & lines](/docs/drawing-tools/price-labels) | Price label, price line                              |
+
+The full `<DrawingToolbar>` (no `tools` prop) shows every built-in tool, financial ones included. On price data the
+magnet snaps to open, high, low and close.

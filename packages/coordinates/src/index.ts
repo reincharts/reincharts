@@ -1,8 +1,5 @@
-export * from "./EdgeIndicator";
-export * from "./CrossHairCursor";
+export * from "./Crosshair";
 export * from "./CurrentCoordinate";
-export * from "./Cursor";
-export * from "./MouseCoordinateX";
-export { MouseCoordinateXV2 } from "./MouseCoordinateXV2";
-export { MouseCoordinateY } from "./MouseCoordinateY";
-export * from "./PriceCoordinate";
+export * from "./labels";
+export * from "./LastValue";
+export * from "./PriceLine";

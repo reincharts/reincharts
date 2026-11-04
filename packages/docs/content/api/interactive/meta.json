@@ -1,0 +1,18 @@
+{
+  "title": "@reincharts/interactive",
+  "pages": [
+    "---Components---",
+    "brush",
+    "drawings",
+    "drawing-style-toolbar",
+    "drawing-toolbar",
+    "zoom-buttons",
+    "---Hooks---",
+    "use-drawings",
+    "use-drawing-state",
+    "---Reference---",
+    "functions",
+    "constants",
+    "types"
+  ]
+}

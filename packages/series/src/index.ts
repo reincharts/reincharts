@@ -1,23 +1,35 @@
-export * from "./AlternateDataSeries";
-export * from "./AlternatingFillAreaSeries";
-export * from "./AreaOnlySeries";
+export * from "./aggregate";
 export * from "./AreaSeries";
-export * from "./markers";
-export * from "./LineSeries";
-export * from "./CandlestickSeries";
-export * from "./OHLCSeries";
 export * from "./BarSeries";
-export { StackedBarSeries, StackedBarSeriesProps } from "./StackedBarSeries";
-export * from "./GroupedBarSeries";
+export { formatValue, type BarColor, type BarLayout, type BarStyleProps } from "./bars";
+export * from "./BaselineSeries";
+export * from "./CandlestickSeries";
+export * from "./ErrorBarSeries";
+export * from "./geometry";
+export * from "./HLCAreaSeries";
+export * from "./HorizontalBarSeries";
 export * from "./KagiSeries";
+export * from "./LineSeries";
+export * from "./lod";
+export * from "./marker";
+export {
+    GroupedBarSeries,
+    OverlayBarSeries,
+    paletteColor,
+    StackedBarSeries,
+    type GroupedBarSeriesProps,
+    type MultiBarProps,
+    type OverlayBarSeriesProps,
+    type StackedBarSeriesProps,
+} from "./MultiBarSeries";
+export * from "./OHLCSeries";
+export * from "./path";
 export * from "./PointAndFigureSeries";
 export * from "./RenkoSeries";
-export * from "./MACDSeries";
-export * from "./BollingerSeries";
-export * from "./RSISeries";
-export * from "./StochasticSeries";
-export * from "./ElderRaySeries";
-export * from "./VolumeProfileSeries";
 export * from "./ScatterSeries";
+export * from "./stack";
+export * from "./StackedAreaSeries";
 export * from "./StraightLine";
-export * from "./SARSeries";
+export * from "./useSeries";
+export * from "./VolumeCandlesSeries";
+export * from "./VolumeProfileSeries";

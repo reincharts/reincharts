@@ -1,0 +1,38 @@
+---
+title: Oscillators
+description: RSI, MACD, Stochastic, CCI, Williams %R, ROC, Momentum, ATR and more.
+examples: /examples/indicators/oscillators
+api: /api/indicators/rsi
+---
+
+<ComponentPreview name="indicators-oscillators" height={480} />
+
+## Usage
+
+Oscillators need their own pane:
+
+```tsx
+<Pane size={3}>{/* price */}</Pane>
+<Pane>
+    <RSI period={14} />
+    <YAxis />
+    <Legend />
+</Pane>
+```
+
+| Id             | Indicator                                      | Component      |
+| -------------- | ---------------------------------------------- | -------------- |
+| `rsi`          | Relative Strength Index (30 / 50 / 70 levels)  | `<RSI>`        |
+| `macd`         | MACD line, signal and 4-color histogram        | `<MACD>`       |
+| `stochastic`   | %K / %D with 20 / 80 levels (fast, slow, full) | `<Stochastic>` |
+| `cci`          | Commodity Channel Index                        |                |
+| `williamsR`    | Williams %R                                    |                |
+| `mfi`          | Money Flow Index                               |                |
+| `roc`          | Rate of change (%)                             |                |
+| `momentum`     | Momentum                                       |                |
+| `atr`          | Average True Range                             | `<ATR>`        |
+| `stddev`       | Standard deviation                             |                |
+| `elderImpulse` | Elder impulse system                           |                |
+
+The y range fits the data plus the levels. To keep RSI on 0-100, pass `fitDomain` or pin the pane's scale with
+`domain: [0, 100]`.

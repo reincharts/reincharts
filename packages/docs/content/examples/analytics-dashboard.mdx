@@ -1,0 +1,12 @@
+---
+title: "Analytics dashboard"
+description: "A responsive 2×2 grid of synced charts: one crosshair, one zoom."
+docs: /docs/guides/syncing-charts
+api: /api/core/chart-canvas
+---
+
+<ComponentPreview name="analytics-dashboard" height={640} />
+
+## How it works
+
+Four independent `<ChartCanvas>` components share the same `syncId`, so hovering one moves the crosshair (and the legend values) in all of them, and `syncRange` keeps their visible range in step while you pan or zoom any chart. The grid is plain CSS: one column on small screens, two on wide ones.

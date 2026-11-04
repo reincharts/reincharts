@@ -1,0 +1,33 @@
+---
+title: Volume
+description: VWAP, Volume, On-Balance Volume, Money Flow Index and Force Index.
+examples: /examples/indicators/volume
+api: /api/indicators/force-index
+---
+
+<ComponentPreview name="indicators-volume" height={520} />
+
+## Usage
+
+```tsx
+<Pane size={3}>
+    <CandlestickSeries />
+    <Indicator definition={indicators.vwap} />
+</Pane>
+<Pane>
+    <Indicator definition={indicators.volume} />
+</Pane>
+<Pane>
+    <Indicator definition={indicators.obv} />
+</Pane>
+```
+
+| Id           | Indicator                                                            |
+| ------------ | -------------------------------------------------------------------- |
+| `vwap`       | Volume-weighted average price, reset every session / week / month... |
+| `volume`     | Volume histogram (up / down colors) with a moving average            |
+| `obv`        | On-Balance Volume                                                    |
+| `mfi`        | Money Flow Index                                                     |
+| `forceIndex` | Force Index (`<ForceIndex>`)                                         |
+
+For a plain volume histogram on the price pane, [`<VolumeSeries>`](/docs/financial/volume) is the lighter option.

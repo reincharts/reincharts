@@ -1,0 +1,136 @@
+---
+title: Datafeed & realtime
+description: Connect any backend - history, infinite scroll, realtime updates, aggregation, CSV and bar replay.
+examples: /examples/datafeed
+api: /api/datafeed
+---
+
+`@reincharts/datafeed` (also exported by `reincharts`) connects a chart to any backend. Write one small
+adapter for your backend and `useDatafeed` gives the chart sorted bars, realtime updates and infinite scroll back in
+time. This chart streams from the built-in demo feed:
+
+<ComponentPreview name="datafeed-realtime" />
+
+## The Datafeed interface
+
+Only `getBars` is required:
+
+```ts
+interface Datafeed {
+  /** Bars with time < `to`: the `countBack` most recent ones (or those >= `from`). */
+  getBars(request: GetBarsRequest): Promise<{ bars: Bar[]; noData?: boolean }>;
+  /** Realtime: same `time` as the last bar = update it, newer = append. Returns an unsubscribe function. */
+  subscribeBars?(symbol: string, resolution: Resolution, onBar: (bar: Bar) => void): () => void;
+  searchSymbols?(query: string): Promise<SymbolInfo[]>;
+  resolveSymbol?(symbol: string): Promise<SymbolInfo>;
+}
+
+interface Bar {
+  time: number; // bar open time, ms epoch (UTC)
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+```
+
+Resolutions use a compact notation: `"1S"`, `"5S"`... seconds, `"1"`, `"5"`, `"15"`, `"60"`, `"240"`... minutes,
+`"1D"`, `"1W"`, `"1M"`, `"3M"`, `"12M"`. `RESOLUTIONS` lists the common ones; `normalizeResolution` also accepts
+`"1h"`, `"1d"`, `"1y"`...
+
+## Writing an adapter
+
+A REST endpoint for history and a WebSocket for realtime:
+
+```ts
+import type { Datafeed } from "@reincharts/datafeed";
+
+export const feed: Datafeed = {
+  async getBars({ symbol, resolution, to, countBack, signal }) {
+    const res = await fetch(`/api/bars?symbol=${symbol}&resolution=${resolution}&to=${to}&count=${countBack}`, {
+      signal,
+    });
+    const bars = await res.json(); // [{ time, open, high, low, close, volume }]
+    return { bars, noData: bars.length === 0 };
+  },
+  subscribeBars(symbol, resolution, onBar) {
+    const ws = new WebSocket(`wss://example.com/stream/${symbol}/${resolution}`);
+    ws.onmessage = (e) => onBar(JSON.parse(e.data));
+    return () => ws.close();
+  },
+};
+```
+
+Pass `signal` to `fetch`: requests that became stale (the symbol changed, the chart unmounted) are aborted.
+
+## useDatafeed
+
+```tsx
+const { data, loadMore, loading, hasMore, symbolInfo } = useDatafeed(feed, { symbol, resolution });
+
+<ChartCanvas data={data} onReachStart={loadMore} resetKey={`${symbol}:${resolution}`}>
+  {/* ... */}
+</ChartCanvas>;
+```
+
+- `data` is sorted and de-duplicated, with a `date` on every bar, ready for `<ChartCanvas>`.
+- **Pagination:** wire `loadMore` to `onReachStart`. When the user scrolls to the first bar, the previous page
+  (`pageSize`, default 500 bars) is prepended and the view stays where it was. `hasMore` turns false once the feed answers
+  `noData`.
+- **Realtime:** when the feed implements `subscribeBars`, incoming bars update the last bar or append a new one, and the
+  chart follows the newest bar while it is visible.
+- Changing `symbol` or `resolution` reloads; pass the same key as `resetKey` so the view resets too.
+- `loading` / `loadingMore` and `error` drive loading and error states, `reset()` reloads from scratch,
+  `realtime: false` skips the subscription and `enabled: false` pauses loading (until a symbol is picked, say).
+
+## Demo and in-memory feeds
+
+- `createRandomDatafeed({ symbols, seed, startPrice, volatility, speed, realtimeIntervalMs })` is a deterministic random
+  walk with a realtime ticker. It runs in the browser, which makes it great for demos, tests and prototyping.
+- `createMemoryDatafeed({ AAPL: bars }, { resolution: "1D" })` serves arrays you already have, aggregates higher
+  resolutions on demand and has `pushBar()` to simulate realtime updates.
+
+[See the in-memory datafeed example →](/examples/datafeed)
+
+## Aggregation and ticks
+
+These helpers are pure functions that work without a datafeed:
+
+| Function                                                                                                             | Purpose                                                                  |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `aggregateBars(bars, "60")`                                                                                          | Higher timeframe bars (1m → 1h, 1D → 1W / 1M), time zone aware.          |
+| `ticksToBars(ticks, "1S")`                                                                                           | Seconds or minute bars from trades.                                      |
+| `applyTick(data, tick, res)`                                                                                         | Merge one trade into the last bar (realtime from a trade stream).        |
+| `mergeBar(data, bar)`                                                                                                | Realtime merge: update the last bar or append.                           |
+| `mergeBars(older, newer)`                                                                                            | Merge a history page into loaded data.                                   |
+| `alignSeries(base, other, "AAPL")`                                                                                   | Align a compare symbol by time: plot `d.AAPL?.close` on a percent scale. |
+| `tickToBar(bar, tick, res)`                                                                                          | Update (or start) a single bar from a trade.                             |
+| `toChartBar`, `sortBars`                                                                                             | Add the `date` field; sort by time and drop duplicates.                  |
+| `sliceBars(bars, request)`                                                                                           | Answer a `getBars` request from an array (for your own in-memory feed).  |
+| `alignTime`, `nextBarTime`, `timeZoneOffset`                                                                         | Bar boundaries for a resolution and time zone.                           |
+| `parseResolution`, `isResolution`, `normalizeResolution`, `resolutionToMs`, `formatResolution`, `compareResolutions` | Resolution helpers.                                                      |
+| `SECOND`, `MINUTE`, `HOUR`, `DAY`, `WEEK`                                                                            | Durations in milliseconds.                                               |
+
+## CSV and TSV
+
+`parseCsv(text)` reads CSV / TSV exports with a header row into bars sorted by time. The time column, delimiter and
+OHLCV columns are detected; rename columns with `columns`, e.g. `{ close: "Adj Close" }`. `parseTimeValue` is the
+date parser it uses (ISO dates, epoch seconds or milliseconds; dates without a zone are read as UTC).
+
+[See the csv data example →](/examples/datafeed/csv)
+
+## Bar replay
+
+`useBarReplay(data, { startIndex, speed, autoPlay })` reveals bars one by one. Pass its `data` to the chart and drive
+it with `play`, `pause`, `toggle`, `step(count)`, `stepBack(count)`, `setSpeed` (bars per second), `setStart(index)`
+and `reset`; `index`, `playing` and `atEnd` describe the current position. A negative `startIndex` counts from the
+end.
+
+[See the bar replay example →](/examples/datafeed/replay)
+
+## Without a datafeed
+
+The core handles live data on its own too: pass a new `data` array with the last bar replaced or a bar appended, use
+`onReachStart` to prepend history, and change `resetKey` on symbol changes. See
+[Data & x modes](/docs/concepts/data#updating-data).

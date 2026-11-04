@@ -1,0 +1,81 @@
+---
+title: Theming
+description: Light and dark presets, partial overrides and fully custom themes.
+examples: /examples/theming
+api: /api/core/types#theme
+---
+
+Every component takes its default colors, fonts and line styles from the chart **theme**, so one prop restyles
+everything. Pass a preset name, a partial override, or a complete theme:
+
+```tsx
+<ChartCanvas data={data} theme="dark" />
+<ChartCanvas data={data} theme={{ up: "#26a69a", down: "#ef5350" }} /> {/* merged over the light theme */}
+<ChartCanvas data={data} theme={myTheme} />
+```
+
+The examples on this site pass a theme built from the site's zinc palette (`useDocsChartTheme()`, a few lines around
+`createTheme`). Toggle light / dark in the navbar to see every chart follow.
+
+## Custom themes
+
+`createTheme(overrides, base?)` deep-merges overrides into a base theme (`lightTheme` by default):
+
+```tsx
+const terminal = createTheme(
+  {
+    background: "#0b0f0c",
+    line: "#22c55e",
+    area: { top: "rgba(34, 197, 94, 0.35)", bottom: "rgba(34, 197, 94, 0)" },
+    grid: { color: "rgba(34, 197, 94, 0.08)" },
+    axis: { line: "#14532d", text: "#4ade80" },
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+  },
+  darkTheme,
+);
+
+<ChartCanvas data={traffic} theme={terminal}>
+  <AreaSeries y="sessions" />
+  <YAxis />
+  <XAxis />
+</ChartCanvas>;
+```
+
+<ComponentPreview name="concept-theme" height={340} />
+
+Partial objects passed to `theme` are merged the same way, over the dark preset when they contain `name: "dark"` and
+over the light one otherwise.
+
+## Following the app's color scheme
+
+Map your app's theme to a chart theme, memoized so the chart doesn't re-resolve it on every render:
+
+```tsx
+const scheme = useColorScheme(); // "light" | "dark" from your app
+const theme = useMemo(
+  () => createTheme({ background: "transparent" }, scheme === "dark" ? darkTheme : lightTheme),
+  [scheme],
+);
+```
+
+A `"transparent"` background lets the chart blend into a card or page background, like the chart on the
+[home page](/).
+
+## Theme reference
+
+A theme is a plain, fully typed object ([`Theme`](/api/core/types#theme)):
+
+| Keys                              | Used for                                                       |
+| --------------------------------- | -------------------------------------------------------------- |
+| `background`, `text`, `textMuted` | Canvas background, legend and label text                       |
+| `fontFamily`, `fontSize`          | Every canvas label                                             |
+| `grid`, `axis`, `crosshair`       | Grid lines, axis lines and labels, crosshair lines and labels  |
+| `paneSeparator`, `selection`      | Lines between panes, brush and selection fills                 |
+| `line`, `area`                    | Default line and area series colors                            |
+| `up`, `down`, `neutral`, `volume` | Rising / falling candles, bars and volume                      |
+| `palette`                         | Colors for multi-series charts, indicators and compare symbols |
+| `drawing`, `watermark`            | Drawing tools and watermarks                                   |
+
+`resolveTheme(theme)` turns anything the `theme` prop accepts into a complete theme, and `useChartState((s) => s.theme)`
+reads the active theme inside a chart. Components also take their own color props (`upColor`, `color`, `fill`...),
+which default to the theme.

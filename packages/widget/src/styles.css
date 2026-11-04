@@ -1,0 +1,1043 @@
+/* @reincharts/widget — TradingChart. Plain CSS scoped to .rc-widget; theme with the --rc-* custom properties. */
+@import "@reincharts/interactive/styles.css";
+
+.rc-widget {
+    --rc-bg: #ffffff;
+    --rc-panel: #ffffff;
+    --rc-border: #e0e3eb;
+    --rc-border-strong: #d1d4dc;
+    --rc-text: #131722;
+    --rc-muted: #6a6d78;
+    --rc-accent: #2962ff;
+    --rc-accent-hover: #1e53e5;
+    --rc-accent-text: #ffffff;
+    --rc-hover: #f0f3fa;
+    --rc-active: #e3effd;
+    --rc-input-bg: #ffffff;
+    --rc-backdrop: rgba(19, 23, 34, 0.24);
+    --rc-shadow: 0 2px 4px rgba(19, 23, 34, 0.06), 0 8px 24px rgba(19, 23, 34, 0.14);
+    --rc-star: #ffa726;
+    --rc-up: #089981;
+    --rc-down: #f23645;
+    --rc-radius: 6px;
+    --rc-font: -apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif;
+    --rc-toolbar-height: 38px;
+    --rc-bottombar-height: 34px;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    container-type: inline-size;
+    background: var(--rc-bg);
+    color: var(--rc-text);
+    font-family: var(--rc-font);
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+}
+
+.rc-widget[data-theme="dark"] {
+    --rc-bg: #131722;
+    --rc-panel: #1e222d;
+    --rc-border: #2a2e39;
+    --rc-border-strong: #434651;
+    --rc-text: #d1d4dc;
+    --rc-muted: #868993;
+    --rc-accent: #2962ff;
+    --rc-accent-hover: #3a6dff;
+    --rc-hover: #2a2e39;
+    --rc-active: #142e61;
+    --rc-input-bg: #131722;
+    --rc-backdrop: rgba(0, 0, 0, 0.5);
+    --rc-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+}
+
+.rc-widget[data-fullscreen] {
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+.rc-widget *,
+.rc-widget *::before,
+.rc-widget *::after {
+    box-sizing: border-box;
+}
+
+.rc-widget .rc-w-icon {
+    display: block;
+    flex: none;
+}
+
+/* ------------------------------------------------------------ buttons */
+
+.rc-w-btn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 28px;
+    min-width: 28px;
+    margin: 0;
+    padding: 0 5px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.rc-w-btn:hover:not(:disabled) {
+    background: var(--rc-hover);
+}
+
+.rc-w-btn:focus-visible,
+.rc-w-menu-item:focus-visible,
+.rc-w-list-item:focus-visible,
+.rc-w-button:focus-visible,
+.rc-w-lg-btn:focus-visible,
+.rc-w-star:focus-visible,
+.rc-w-tab:focus-visible {
+    outline: 2px solid var(--rc-accent);
+    outline-offset: -2px;
+}
+
+.rc-w-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.rc-w-btn[data-active],
+.rc-w-btn[data-open] {
+    color: var(--rc-accent);
+}
+
+.rc-w-text-btn {
+    padding: 0 8px;
+}
+
+.rc-w-sep {
+    flex: none;
+    width: 1px;
+    height: 20px;
+    margin: 0 4px;
+    background: var(--rc-border);
+}
+
+.rc-w-spacer {
+    flex: 1;
+    min-width: 8px;
+}
+
+.rc-w-chevron {
+    margin: 0 -3px 0 -4px;
+}
+
+.rc-w-select {
+    height: 28px;
+    padding: 0 26px 0 8px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5l3-3' fill='none' stroke='%23868993' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    border: 1px solid var(--rc-border);
+    border-radius: 4px;
+    background-color: var(--rc-input-bg);
+    color: var(--rc-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------ top toolbar */
+
+.rc-w-toolbar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 2px;
+    height: var(--rc-toolbar-height);
+    padding: 0 6px;
+    border-bottom: 1px solid var(--rc-border);
+    background: var(--rc-bg);
+    font-size: 14px;
+}
+
+.rc-w-symbol {
+    gap: 6px;
+    padding: 0 10px 0 6px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.rc-w-symbol .rc-w-icon {
+    color: var(--rc-muted);
+}
+
+.rc-w-symbol-static {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 8px;
+}
+
+.rc-w-interval {
+    min-width: 30px;
+    padding: 0 6px;
+    font-weight: 500;
+}
+
+.rc-w-active-text {
+    color: var(--rc-accent);
+    font-weight: 500;
+}
+
+/* ------------------------------------------------------------ menus */
+
+.rc-w-dropdown {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.rc-w-menu {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 200px;
+    max-height: min(560px, 85vh);
+    overflow-y: auto;
+    padding: 6px 0;
+    border: 1px solid var(--rc-border);
+    border-radius: var(--rc-radius);
+    background: var(--rc-panel);
+    box-shadow: var(--rc-shadow);
+    color: var(--rc-text);
+    font-size: 14px;
+}
+
+.rc-w-menu[data-align="right"] {
+    right: 0;
+    left: auto;
+    min-width: 0;
+}
+
+.rc-w-menu[data-up] {
+    top: auto;
+    bottom: calc(100% + 4px);
+}
+
+.rc-w-menu-row {
+    display: flex;
+    align-items: center;
+    padding-right: 6px;
+}
+
+.rc-w-menu-row:hover {
+    background: var(--rc-hover);
+}
+
+.rc-w-menu-row[data-active] {
+    background: var(--rc-active);
+}
+
+.rc-w-menu-item {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 10px;
+    height: 32px;
+    padding: 0 6px 0 12px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.rc-w-menu-item:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.rc-w-menu-label {
+    flex: 1;
+}
+
+.rc-w-menu-icon-space {
+    flex: none;
+    width: 18px;
+}
+
+.rc-w-menu-check {
+    margin-right: 6px;
+    color: var(--rc-accent);
+}
+
+.rc-w-menu-heading {
+    padding: 8px 12px 4px;
+    color: var(--rc-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.rc-w-menu-divider {
+    height: 1px;
+    margin: 6px 0;
+    background: var(--rc-border);
+}
+
+.rc-w-star {
+    display: inline-flex;
+    padding: 4px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--rc-muted);
+    cursor: pointer;
+    opacity: 0;
+}
+
+.rc-w-menu-row:hover .rc-w-star,
+.rc-w-star:focus-visible,
+.rc-w-star[data-on] {
+    opacity: 1;
+}
+
+.rc-w-star[data-on] {
+    color: var(--rc-star);
+}
+
+.rc-w-layout-grid {
+    display: flex;
+    gap: 2px;
+    padding: 0 6px;
+}
+
+.rc-w-context-menu {
+    top: 0;
+    min-width: 240px;
+}
+
+/* ------------------------------------------------------------ body & grid */
+
+.rc-w-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.rc-w-body > .rc-dt {
+    flex: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
+.rc-w-grid {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 1px;
+    background: var(--rc-border);
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.rc-w-grid[data-layout="2h"] {
+    grid-template: minmax(0, 1fr) / repeat(2, minmax(0, 1fr));
+}
+
+.rc-w-grid[data-layout="2v"] {
+    grid-template: repeat(2, minmax(0, 1fr)) / minmax(0, 1fr);
+}
+
+.rc-w-grid[data-layout="3"] {
+    grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+}
+
+.rc-w-grid[data-layout="3"] > .rc-w-cell:first-child {
+    grid-row: span 2;
+}
+
+.rc-w-grid[data-layout="4"] {
+    grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+}
+
+.rc-w-cell {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--rc-bg);
+}
+
+.rc-w-cell[data-active]::after {
+    content: "";
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    border: 1px solid var(--rc-accent);
+    pointer-events: none;
+}
+
+.rc-w-status {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rc-muted);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.rc-w-error {
+    color: var(--rc-down);
+}
+
+.rc-w-spin {
+    color: var(--rc-accent);
+    animation: rc-w-spin 0.8s linear infinite;
+}
+
+@keyframes rc-w-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ------------------------------------------------------------ legend & pane controls */
+
+.rc-w-legend {
+    max-width: calc(100% - 16px);
+}
+
+.rc-w-legend .rc-legend-item {
+    min-height: 22px;
+}
+
+.rc-w-lg-title {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rc-w-lg-name {
+    color: var(--rc-text);
+}
+
+/* indicator hidden with the eye button (the row stays, dimmed, to show it again) */
+.rc-w-lg-name[data-hidden] {
+    opacity: 0.45;
+}
+
+.rc-w-lg-value {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.rc-w-lg-label {
+    color: var(--rc-muted);
+}
+
+.rc-w-lg-actions {
+    display: inline-flex;
+    gap: 1px;
+    margin-left: 2px;
+}
+
+.rc-w-lg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: var(--rc-bg);
+    color: var(--rc-text);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.rc-w-lg-btn:hover {
+    background: var(--rc-hover);
+}
+
+.rc-w-pane-controls {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    display: flex;
+    gap: 1px;
+    padding: 1px;
+    border-radius: 4px;
+    background: var(--rc-bg);
+    pointer-events: auto;
+}
+
+.rc-w-realtime {
+    position: absolute;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--rc-border);
+    border-radius: 4px;
+    background: var(--rc-panel);
+    box-shadow: var(--rc-shadow);
+    color: var(--rc-text);
+    cursor: pointer;
+}
+
+.rc-w-realtime:hover {
+    background: var(--rc-hover);
+}
+
+/* ------------------------------------------------------------ replay */
+
+.rc-w-replay {
+    position: absolute;
+    z-index: 6;
+    bottom: 40px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    border: 1px solid var(--rc-border);
+    border-radius: var(--rc-radius);
+    background: var(--rc-panel);
+    box-shadow: var(--rc-shadow);
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ bottom bar */
+
+.rc-w-bottombar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 1px;
+    height: var(--rc-bottombar-height);
+    padding: 0 6px;
+    border-top: 1px solid var(--rc-border);
+    background: var(--rc-bg);
+    font-size: 13px;
+}
+
+.rc-w-range,
+.rc-w-scale-btn,
+.rc-w-zone {
+    height: 26px;
+    min-width: 0;
+    padding: 0 7px;
+}
+
+.rc-w-scale-btn[data-active] {
+    color: var(--rc-accent);
+}
+
+.rc-w-zone {
+    color: var(--rc-muted);
+}
+
+/* ------------------------------------------------------------ object tree */
+
+.rc-w-tree {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 280px;
+    border-left: 1px solid var(--rc-border);
+    background: var(--rc-bg);
+}
+
+.rc-w-tree-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    padding: 0 6px 0 14px;
+    border-bottom: 1px solid var(--rc-border);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rc-w-tree-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 8px;
+}
+
+.rc-w-tree-pane {
+    padding: 12px 14px 4px;
+    color: var(--rc-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.rc-w-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 6px 0 24px;
+    cursor: default;
+}
+
+.rc-w-tree-row:hover {
+    background: var(--rc-hover);
+}
+
+.rc-w-tree-row[data-active] {
+    background: var(--rc-active);
+}
+
+.rc-w-tree-row[data-hidden] .rc-w-tree-name {
+    opacity: 0.45;
+}
+
+.rc-w-tree-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rc-w-tree-actions {
+    display: flex;
+    opacity: 0;
+}
+
+.rc-w-tree-row:hover .rc-w-tree-actions,
+.rc-w-tree-actions:focus-within {
+    opacity: 1;
+}
+
+.rc-w-tree-btn {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
+/* ------------------------------------------------------------ dialogs */
+
+.rc-w-backdrop {
+    position: absolute;
+    z-index: 100;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: var(--rc-backdrop);
+}
+
+.rc-w-dialog {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    border-radius: var(--rc-radius);
+    background: var(--rc-panel);
+    box-shadow: var(--rc-shadow);
+    color: var(--rc-text);
+}
+
+.rc-w-dialog-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 12px 14px 20px;
+}
+
+.rc-w-dialog-header h2 {
+    margin: 0;
+    overflow: hidden;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rc-w-search {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 12px 0 20px;
+    border-top: 1px solid var(--rc-border);
+    border-bottom: 1px solid var(--rc-border);
+    color: var(--rc-muted);
+}
+
+.rc-w-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--rc-text);
+    font: inherit;
+    font-size: 16px;
+}
+
+.rc-w-search input::placeholder {
+    color: var(--rc-muted);
+}
+
+.rc-w-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 0 12px;
+}
+
+.rc-w-indicators-dialog .rc-w-list,
+.rc-w-dialog .rc-w-list[role="listbox"] {
+    height: 440px;
+}
+
+.rc-w-list-heading {
+    padding: 14px 20px 6px;
+    color: var(--rc-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.rc-w-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 34px;
+    padding: 0 20px;
+    border: 0;
+    background: none;
+    color: var(--rc-text);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rc-w-list-item:hover,
+.rc-w-list-item[data-active] {
+    background: var(--rc-hover);
+}
+
+.rc-w-list-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.rc-w-list-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* "On chart" rows of the indicators dialog: the row isn't clickable, its buttons are */
+.rc-w-active-indicator {
+    cursor: default;
+    padding-right: 12px;
+}
+
+.rc-w-active-indicator[data-hidden] .rc-w-list-name {
+    color: var(--rc-muted);
+}
+
+.rc-w-list-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.rc-w-icon-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: var(--rc-muted);
+}
+
+.rc-w-icon-btn:hover {
+    color: var(--rc-text);
+}
+
+.rc-w-list-meta {
+    color: var(--rc-muted);
+    font-size: 12px;
+}
+
+.rc-w-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--rc-accent);
+    color: var(--rc-accent-text);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.rc-w-symbol-code {
+    flex: none;
+    width: 120px;
+    font-weight: 600;
+}
+
+.rc-w-symbol-desc {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rc-w-symbol-meta {
+    color: var(--rc-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.rc-w-empty {
+    padding: 32px 20px;
+    color: var(--rc-muted);
+    text-align: center;
+}
+
+.rc-w-tabs {
+    display: flex;
+    flex: none;
+    gap: 20px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--rc-border);
+}
+
+.rc-w-tab {
+    height: 38px;
+    margin-bottom: -1px;
+    padding: 0 2px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--rc-muted);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.rc-w-tab:hover {
+    color: var(--rc-text);
+}
+
+.rc-w-tab[data-active] {
+    border-bottom-color: var(--rc-text);
+    color: var(--rc-text);
+}
+
+.rc-w-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 20px 16px;
+    font-size: 14px;
+}
+
+.rc-w-form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 40px;
+}
+
+.rc-w-field {
+    width: 220px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--rc-border-strong);
+    border-radius: 4px;
+    background-color: var(--rc-input-bg);
+    color: var(--rc-text);
+    font: inherit;
+}
+
+.rc-w-select.rc-w-field {
+    padding-right: 28px;
+}
+
+.rc-w-field:focus {
+    border-color: var(--rc-accent);
+    outline: 0;
+}
+
+.rc-w-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.rc-w-check input,
+.rc-w-form input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--rc-accent);
+    cursor: pointer;
+}
+
+.rc-w-color {
+    width: 34px;
+    height: 34px;
+    padding: 3px;
+    border: 1px solid var(--rc-border-strong);
+    border-radius: 4px;
+    background: var(--rc-input-bg);
+    cursor: pointer;
+}
+
+.rc-w-style-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rc-w-style-controls .rc-w-field {
+    width: 88px;
+}
+
+.rc-w-dialog-footer {
+    display: flex;
+    flex: none;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px 16px;
+    border-top: 1px solid var(--rc-border);
+}
+
+.rc-w-footer-left {
+    margin-right: auto;
+}
+
+.rc-w-button {
+    height: 34px;
+    min-width: 72px;
+    padding: 0 16px;
+    border: 1px solid var(--rc-border-strong);
+    border-radius: var(--rc-radius);
+    background: var(--rc-panel);
+    color: var(--rc-text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.rc-w-button:hover {
+    background: var(--rc-hover);
+}
+
+.rc-w-button-primary {
+    border-color: var(--rc-accent);
+    background: var(--rc-accent);
+    color: var(--rc-accent-text);
+}
+
+.rc-w-button-primary:hover {
+    border-color: var(--rc-accent-hover);
+    background: var(--rc-accent-hover);
+}
+
+.rc-w-button-ghost {
+    border-color: transparent;
+}
+
+/* ------------------------------------------------------------ narrow widgets */
+
+.rc-w-secondary {
+    display: contents;
+}
+
+/* data-compact is set by the toolbar while its contents overflow */
+.rc-w-toolbar[data-compact] .rc-w-text-btn:not(.rc-w-symbol) > span:not(.rc-w-active-text) {
+    display: none;
+}
+
+.rc-w-toolbar:is([data-compact="2"], [data-compact="3"]) .rc-w-interval:not([data-active]) {
+    display: none;
+}
+
+.rc-w-toolbar[data-compact="3"] .rc-w-secondary {
+    display: none;
+}
+
+@container (max-width: 640px) {
+    .rc-w-zone,
+    .rc-w-range:nth-child(n + 6):not(:last-child) {
+        display: none;
+    }
+
+    .rc-w-tree {
+        position: absolute;
+        z-index: 20;
+        top: var(--rc-toolbar-height);
+        right: 0;
+        bottom: 0;
+        box-shadow: var(--rc-shadow);
+    }
+}
+
+/* ------------------------------------------------------------ cursors */
+
+.rc-widget button:not(:disabled),
+.rc-widget select,
+.rc-widget [role="tab"],
+.rc-widget [role="menuitem"],
+.rc-widget [role="option"],
+.rc-widget label:has(input[type="checkbox"]),
+.rc-widget input[type="checkbox"],
+.rc-widget input[type="color"] {
+    cursor: pointer;
+}
+
+.rc-widget button:disabled {
+    cursor: default;
+}

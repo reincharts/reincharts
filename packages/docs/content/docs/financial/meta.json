@@ -1,0 +1,17 @@
+{
+  "title": "Financial charts",
+  "pages": [
+    "index",
+    "candlestick",
+    "ohlc",
+    "heikin-ashi",
+    "baseline",
+    "hlc-area",
+    "volume",
+    "volume-profile",
+    "renko",
+    "kagi",
+    "point-and-figure",
+    "line-break"
+  ]
+}

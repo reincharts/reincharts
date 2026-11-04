@@ -1,0 +1,23 @@
+---
+title: "Alerts"
+description: "Get notified when new data crosses a line the user has drawn."
+examples: /examples/drawing-tools/alerts
+api: /api/interactive/use-drawings
+---
+
+<ComponentPreview name="drawings-alerts" height={420} />
+
+`onCross(drawing, direction, bar)` fires when **new data** (an appended or updated last point) crosses a horizontal
+line, horizontal ray, cross line or trend line. `direction` is `"up"` when the value crossed from below. Users drag
+the lines to change the thresholds; combine it with realtime data for monitoring dashboards:
+
+```tsx
+const drawings = useDrawings({
+  onCross: (drawing, direction) => notify(`${drawing.style.text ?? "Threshold"} crossed ${direction}`),
+});
+
+<Drawings controller={drawings} source={(d) => d.temp} />;
+```
+
+The value checked is `close`, `value` or `y` by default; pick another field with `source`. Custom tools take part by
+implementing `crossValue`. Store your own alert ids in `drawing.meta`.

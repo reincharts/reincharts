@@ -1,0 +1,83 @@
+---
+title: "State, save & load"
+description: "The serializable TradingChartState: controlled mode, save and load."
+examples: /examples/trading-chart/state
+api: /api/widget/types#tradingchartstate
+---
+
+<ComponentPreview name="widget-state" height={560} />
+
+Everything the user can change is one plain object, `TradingChartState`: symbol, interval, chart type, scale mode,
+indicators, drawings, compare symbols, pane sizes, visible range, theme, layout and its symbols, favorite intervals and
+settings. Store it per user, per symbol, in a URL...
+
+## Save and load with the ref
+
+```tsx
+const chart = useRef<TradingChartHandle>(null);
+
+<TradingChart ref={chart} datafeed={feed} />;
+
+const state = chart.current!.save(); // includes the current pane sizes and visible range
+await api.saveLayout(JSON.stringify(state));
+
+chart.current!.load(await api.loadLayout()); // an object or its JSON string
+```
+
+## Uncontrolled with a saved layout
+
+```tsx
+<TradingChart
+  datafeed={feed}
+  defaultState={saved} // e.g. the result of save()
+  onStateChange={(state) => localStorage.setItem("layout", serializeState(state))}
+/>
+```
+
+## Controlled
+
+Own the state completely (Redux, Zustand, a server cache) with `state` + `onStateChange`:
+
+```tsx
+const [state, setState] = useState(() => parseState(localStorage.getItem("layout")));
+
+<TradingChart datafeed={feed} state={state} onStateChange={setState} />;
+```
+
+`serializeState`, `parseState` (tolerates invalid input and fills defaults), `normalizeState` and `defaultState` help
+with storage and migrations.
+
+## The layout JSON
+
+```json
+{
+  "symbol": "AAPL",
+  "resolution": "60",
+  "chartType": "candles",
+  "scaleMode": "linear",
+  "indicators": [
+    { "id": "ema-1", "definitionId": "ema", "inputs": { "period": 21 }, "paneId": "price" },
+    { "id": "rsi-1", "definitionId": "rsi", "paneId": "pane-rsi-1" }
+  ],
+  "drawings": [
+    {
+      "id": "d1",
+      "type": "trendLine",
+      "pane": "price",
+      "points": [
+        { "time": 1717000000000, "price": 182.4 },
+        { "time": 1717600000000, "price": 191.2 }
+      ],
+      "style": { "color": "#2962ff" }
+    }
+  ],
+  "paneSizes": { "price": 3, "pane-rsi-1": 1 },
+  "visibleRange": { "from": 1716000000000, "to": 1718000000000 },
+  "layout": "single",
+  "theme": "dark",
+  "favorites": ["5", "15", "60", "1D"]
+}
+```
+
+Drawings use the same format as [`@reincharts/interactive`](/docs/guides/saving-loading), and indicators reference the
+[indicator registry](/docs/indicators) (or your `extraIndicators`) by id, so saved layouts stay small and readable.

@@ -1,0 +1,66 @@
+---
+title: Introduction
+description: Fast, interactive charts for React. Free and open source.
+---
+
+Reincharts is a library of composable components to build **interactive charts**: lines, areas, bars (vertical and horizontal), scatter and
+bubble charts on numeric, time or category axes, all with pan, zoom, crosshairs, tooltips, legends, annotations and
+[drawing tools](/docs/components/drawing-tools) out of the box. The same engine also powers a complete set of
+**financial charts**: candlesticks, 30+ indicators, Fibonacci and position tools and a ready-made trading chart
+component.
+
+<ComponentPreview name="tooltip" height={320} />
+
+Everything is drawn on `<canvas>` by one small engine, so a chart with tens of thousands of points still pans and zooms
+smoothly. Components are plain React: you compose a chart from a `<ChartCanvas>`, one or more `<Pane>`s, series, axes
+and overlays.
+
+```tsx
+<ChartCanvas data={data}>
+  <Pane>
+    <AreaSeries y="visitors" />
+    <YAxis />
+    <Tooltip />
+  </Pane>
+  <XAxis />
+  <Crosshair />
+</ChartCanvas>
+```
+
+## When to use it
+
+- **Dashboards and data apps** that need more than static pictures: zoomable time series, synced charts, live data,
+  thresholds and annotations.
+- **Large or streaming datasets**, where SVG chart libraries slow down.
+- **Trading and finance apps**, from a single candlestick chart to a full trading terminal.
+
+## Packages
+
+Install only the packages you use (recommended), or the umbrella package `reincharts`, which re-exports all of them.
+
+| Package                   | Contents                                                          |
+| ------------------------- | ----------------------------------------------------------------- |
+| `@reincharts/core`        | `ChartCanvas`, `Pane`, hooks, scales, themes and the chart engine |
+| `@reincharts/series`      | Chart types: line, area, bars, scatter, candlesticks...           |
+| `@reincharts/axes`        | `XAxis`, `YAxis`, `Grid`                                          |
+| `@reincharts/coordinates` | Crosshair, last-value labels, price lines                         |
+| `@reincharts/tooltip`     | Tooltips and legends                                              |
+| `@reincharts/annotations` | Reference lines and areas, markers, labels, watermarks            |
+| `@reincharts/interactive` | Drawing tools, brush, zoom buttons                                |
+| `@reincharts/indicators`  | Technical indicators and bar transforms                           |
+| `@reincharts/datafeed`    | Datafeed adapters, realtime updates, aggregation, replay          |
+| `@reincharts/widget`      | `<TradingChart>`: a complete trading chart UI                     |
+
+## Why Reincharts
+
+- **Free and MIT.** No license key, no watermark, no usage limits.
+- **Fast.** One render loop, two canvas layers, and only the visible points are touched each frame.
+- **Composable.** Every series, axis and tool is a component. Writing your own takes a single hook.
+- **Typed.** Strict TypeScript, generic over your data type, with every prop documented in the [API reference](/api).
+
+<Cards>
+  <Card title="Installation" href="/docs/installation" description="Add Reincharts to your React app." />
+  <Card title="Quick start" href="/docs/quick-start" description="Your first chart in five minutes." />
+  <Card title="Examples" href="/examples" description="Dashboards, realtime data, large datasets and more." />
+  <Card title="API reference" href="/api" description="Every component, hook and type." />
+</Cards>

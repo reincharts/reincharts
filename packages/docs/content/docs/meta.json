@@ -1,0 +1,24 @@
+{
+  "title": "Docs",
+  "pages": [
+    "---Get Started---",
+    "index",
+    "installation",
+    "quick-start",
+    "frameworks",
+    "---Concepts---",
+    "...concepts",
+    "---Chart Types---",
+    "...chart-types",
+    "---Components---",
+    "...components",
+    "---Financial---",
+    "financial",
+    "indicators",
+    "drawing-tools",
+    "datafeed",
+    "trading-chart",
+    "---Guides---",
+    "...guides"
+  ]
+}

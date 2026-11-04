@@ -1,223 +1,61 @@
-import {
-    getClosestItemIndexes,
-    getStrokeDasharrayCanvas,
-    strokeDashTypes,
-    getAxisCanvas,
-    getMouseCanvas,
-    GenericChartComponent,
-    MoreProps,
-} from "@reincharts/core";
-import { line, CurveFactoryLineOnly, CurveFactory } from "d3-shape";
-import * as React from "react";
+import { accessor, applyStroke, type Accessor, type LineDash } from "@reincharts/core";
+import { traceMarker } from "./marker";
+import { linePoints, tracePath, type Curve } from "./path";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface LineSeriesProps {
-    readonly canvasClip?: (context: CanvasRenderingContext2D, moreProps: any) => void;
-    /**
-     * Whether to connect the line between undefined data points.
-     */
-    readonly connectNulls?: boolean;
-    /**
-     * A factory for a curve generator for the line.
-     */
-    readonly curve?: CurveFactory | CurveFactoryLineOnly;
-    /**
-     * Function to decide if a data point has been defined.
-     */
-    readonly defined?: (d: number | undefined) => boolean;
-    /**
-     * Whether to highlight the line when within the `hoverTolerance`.
-     */
-    readonly highlightOnHover?: boolean;
-    /**
-     * Width to increase the line to on hover.
-     */
-    readonly hoverStrokeWidth?: number;
-    /**
-     * The distance between the cursor and the closest point in the line.
-     */
-    readonly hoverTolerance?: number;
-    /**
-     * Click handler.
-     */
-    readonly onClick?: (e: React.MouseEvent, moreProps: any) => void;
-    /**
-     * Double click handler.
-     */
-    readonly onDoubleClick?: (e: React.MouseEvent, moreProps: any) => void;
-    /**
-     * Hover handler.
-     */
-    readonly onHover?: (e: React.MouseEvent, moreProps: any) => void;
-    /**
-     * Unhover handler.
-     */
-    readonly onUnHover?: (e: React.MouseEvent, moreProps: any) => void;
-    /**
-     * Context menu handler.
-     */
-    readonly onContextMenu?: (e: React.MouseEvent, moreProps: any) => void;
-    /**
-     * Color, gradient, or pattern to use for the stroke.
-     */
-    readonly strokeStyle?: string;
-    /**
-     * Stroke dash type.
-     */
-    readonly strokeDasharray?: strokeDashTypes;
-    /**
-     * Stroke width.
-     */
-    readonly strokeWidth?: number;
-    /**
-     * Selector for data to plot.
-     */
-    readonly yAccessor: (data: any) => number | undefined;
+export interface LineSeriesProps<T = any> extends SeriesProps {
+    /** Value accessor. Default "close". */
+    readonly y?: Accessor<T, number | undefined>;
+    /** Line color. Defaults to theme.line. */
+    readonly color?: string;
+    /** Line width in pixels. Default 2. */
+    readonly width?: number;
+    /** Dash style. Default solid. */
+    readonly dash?: LineDash;
+    /** Interpolation: "linear" (default), "monotone" (smooth spline without overshoot) or a step variant. */
+    readonly curve?: Curve;
+    /** Connect across missing values instead of leaving gaps. */
+    readonly connectGaps?: boolean;
+    /** Draw a dot at every point: always (`true`) or only when bars are wide enough (`"auto"`). Default false. */
+    readonly points?: boolean | "auto";
 }
 
-/**
- * `LineSeries` component.
- */
-export class LineSeries extends React.Component<LineSeriesProps> {
-    public static defaultProps = {
-        connectNulls: false,
-        defined: (d: number | undefined) => d !== undefined && !isNaN(d),
-        hoverStrokeWidth: 4,
-        hoverTolerance: 6,
-        highlightOnHover: false,
-        strokeDasharray: "Solid",
-        strokeStyle: "#2196f3",
-        strokeWidth: 1,
-    };
-
-    public render() {
-        const { highlightOnHover, onClick, onContextMenu, onDoubleClick, onHover, onUnHover, strokeDasharray } =
-            this.props;
-
-        const hoverProps =
-            highlightOnHover || onHover || onUnHover
-                ? {
-                      isHover: this.isHover,
-                      drawOn: ["mousemove", "pan"],
-                      canvasToDraw: getMouseCanvas,
-                  }
-                : {
-                      drawOn: ["pan"],
-                      canvasToDraw: getAxisCanvas,
-                  };
-
-        const lineDash = getStrokeDasharrayCanvas(strokeDasharray);
-
-        return (
-            <GenericChartComponent
-                canvasDraw={this.drawOnCanvas(lineDash)}
-                onClickWhenHover={onClick}
-                onDoubleClickWhenHover={onDoubleClick}
-                onContextMenuWhenHover={onContextMenu}
-                onHover={onHover}
-                onUnHover={onUnHover}
-                {...hoverProps}
-            />
-        );
-    }
-
-    private readonly drawOnCanvas = (lineDash?: number[]) => (ctx: CanvasRenderingContext2D, moreProps: MoreProps) => {
-        const {
-            connectNulls,
-            yAccessor,
-            hoverStrokeWidth = LineSeries.defaultProps.hoverStrokeWidth,
-            defined = LineSeries.defaultProps.defined,
-            curve,
-            canvasClip,
-            strokeStyle,
-            strokeWidth = LineSeries.defaultProps.strokeWidth,
-        } = this.props;
-
-        const { xAccessor, xScale, chartConfig, plotData, hovering } = moreProps;
-        if (!chartConfig) {
-            console.warn("LineSeries received no chartConfig, is it inside of a Chart?");
-            return;
-        }
-        const { yScale } = chartConfig;
-
-        if (canvasClip !== undefined) {
-            ctx.save();
-            canvasClip(ctx, moreProps);
-        }
-
-        ctx.lineWidth = hovering ? hoverStrokeWidth : strokeWidth;
-
-        if (strokeStyle !== undefined) {
-            ctx.strokeStyle = strokeStyle;
-        }
-
-        if (lineDash !== undefined) {
-            ctx.setLineDash(lineDash);
-        }
-
-        const dataSeries = line()
-            .x((d) => Math.round(xScale(xAccessor(d))))
-            .y((d) => Math.round(yScale(yAccessor(d)!)));
-
-        if (curve !== undefined) {
-            dataSeries.curve(curve);
-        }
-
-        if (!connectNulls) {
-            dataSeries.defined((d) => defined(yAccessor(d)));
-        }
-
-        ctx.beginPath();
-        dataSeries.context(ctx)(plotData);
-        ctx.stroke();
-
-        if (canvasClip !== undefined) {
-            ctx.restore();
-        }
-    };
-
-    private readonly isHover = (moreProps: any) => {
-        const { highlightOnHover, yAccessor, hoverTolerance = LineSeries.defaultProps.hoverTolerance } = this.props;
-        if (!highlightOnHover) {
-            return false;
-        }
-
-        const {
-            chartConfig: { yScale, origin },
-            xAccessor,
-            mouseXY,
-            currentItem,
-            xScale,
-            plotData,
-        } = moreProps;
-
-        const [x, y] = mouseXY;
-        const radius = hoverTolerance;
-
-        const { left, right } = getClosestItemIndexes(plotData, xScale.invert(x), xAccessor);
-        if (left === right) {
-            const cy = yScale(yAccessor(currentItem)) + origin[1];
-            const cx = xScale(xAccessor(currentItem)) + origin[0];
-
-            const hovering1 = Math.pow(x - cx, 2) + Math.pow(y - cy, 2) < Math.pow(radius, 2);
-
-            return hovering1;
-        } else {
-            const l = plotData[left];
-            const r = plotData[right];
-            const x1 = xScale(xAccessor(l)) + origin[0];
-            const y1 = yScale(yAccessor(l)) + origin[1];
-            const x2 = xScale(xAccessor(r)) + origin[0];
-            const y2 = yScale(yAccessor(r)) + origin[1];
-
-            // y = m * x + b
-            const m /* slope */ = (y2 - y1) / (x2 - x1);
-            const b /* y intercept */ = -1 * m * x1 + y1;
-
-            const desiredY = Math.round(m * x + b);
-
-            const hovering2 = y >= desiredY - radius && y <= desiredY + radius;
-
-            return hovering2;
-        }
-    };
+/** A line through one value per bar (also step lines and smooth monotone splines). */
+export function LineSeries<T = any>({
+    y = "close" as Accessor<T, number | undefined>,
+    color,
+    width = 2,
+    dash,
+    curve = "linear",
+    connectGaps = false,
+    points = false,
+    ...rest
+}: LineSeriesProps<T>) {
+    const value = accessor(y);
+    useSeries<T>({
+        ...rest,
+        values: (d, i) => value(d, i),
+        color: (_d, _i, theme) => color ?? theme.line,
+        draw(ctx, { data, start, end, x, y: yOf, theme, barSpacing }) {
+            const resolved = color ?? theme.line;
+            const pts = linePoints(data, start, end, x, yOf, value);
+            applyStroke(ctx, { color: resolved, width, dash });
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            tracePath(ctx, pts, curve, connectGaps);
+            ctx.stroke();
+            if (points === true || (points === "auto" && barSpacing > 12)) {
+                const dots = new Path2D();
+                for (const p of pts) {
+                    if (p) {
+                        traceMarker(dots, "circle", p[0], p[1], width * 2 + 3);
+                    }
+                }
+                ctx.fillStyle = resolved;
+                ctx.fill(dots);
+            }
+        },
+    });
+    return null;
 }

@@ -1,0 +1,17 @@
+{
+  "title": "API reference",
+  "pages": [
+    "index",
+    "---Packages---",
+    "core",
+    "series",
+    "axes",
+    "coordinates",
+    "tooltip",
+    "annotations",
+    "interactive",
+    "indicators",
+    "datafeed",
+    "widget"
+  ]
+}

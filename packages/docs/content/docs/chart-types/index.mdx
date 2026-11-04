@@ -1,0 +1,39 @@
+---
+title: Overview
+description: Every general-purpose chart type, and how series share props, accessors and colors.
+examples: /examples
+api: /api/series
+---
+
+All chart types are **series** components from `@reincharts/series`. They share the same props for naming, scales and
+visibility, read values with accessors, take their colors from the theme, and plug into autoscale, legends, tooltips
+and the crosshair automatically. Combine as many as you like in a pane.
+
+<Cards>
+  <Card title="Line" href="/docs/chart-types/line" description="Straight, smooth and step lines." />
+  <Card title="Area" href="/docs/chart-types/area" description="Gradient areas, bands and stacked areas." />
+  <Card
+    title="Bars & columns"
+    href="/docs/chart-types/bar"
+    description="Single, grouped, stacked and histogram bars."
+  />
+  <Card title="Horizontal bars" href="/docs/chart-types/horizontal-bar" description="Category y axis, value x axis." />
+  <Card title="Scatter & bubble" href="/docs/chart-types/scatter" description="Markers sized and colored by value." />
+  <Card title="Error bars" href="/docs/chart-types/error-bars" description="Uncertainty whiskers around values." />
+</Cards>
+
+Looking for candlesticks, OHLC bars, Renko and other price charts? See [Financial charts](/docs/financial).
+
+## Accessors and generics
+
+Every value prop accepts a field name (`y="revenue"`) or a function (`y={(d) => d.revenue / 1000}`). TypeScript cannot
+infer the datum type from a string, so pass it explicitly when you use per-datum functions:
+
+```tsx
+<ScatterSeries<Point> y="y" fill={(d) => (d.y < 0 ? "#ef4444" : "#3b82f6")} />
+```
+
+## Common props
+
+Every series takes `name` (legend and tooltip label), `scale` (the y scale id, default `"right"`), `visible` and
+`zIndex`. The full list is in the [`SeriesProps` reference](/api/series/types#seriesprops).

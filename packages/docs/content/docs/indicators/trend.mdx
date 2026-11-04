@@ -1,0 +1,26 @@
+---
+title: Trend
+description: Ichimoku Cloud, Supertrend, Parabolic SAR, ADX / DMI, Aroon and Elder Ray.
+examples: /examples/indicators/trend
+api: /api/indicators/sar
+---
+
+<ComponentPreview name="indicators-trend" />
+
+## Overlays
+
+```tsx
+<Indicator definition={indicators.ichimoku} />
+<Indicator definition={indicators.supertrend} inputs={{ factor: 3 }} />
+<SAR />
+```
+
+Ichimoku draws the conversion and base lines, the lagging span and the cloud between the leading spans (shifted forward,
+green when bullish and red when bearish). Supertrend switches between an up-trend and a down-trend line, and Parabolic
+SAR is drawn as dots.
+
+## Trend strength
+
+ADX / DMI, Aroon and Elder Ray go in their own pane.
+
+[See the trend strength example →](/examples/indicators/trend-strength)

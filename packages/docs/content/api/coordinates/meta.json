@@ -1,0 +1,15 @@
+{
+  "title": "@reincharts/coordinates",
+  "pages": [
+    "---Components---",
+    "crosshair",
+    "current-coordinate",
+    "edge-indicator",
+    "last-value-label",
+    "last-value-line",
+    "price-line",
+    "---Reference---",
+    "functions",
+    "types"
+  ]
+}

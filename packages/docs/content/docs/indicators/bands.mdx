@@ -1,0 +1,27 @@
+---
+title: Bands & channels
+description: Bollinger Bands, Keltner Channels, Donchian Channels and Envelopes.
+examples: /examples/indicators/bands
+api: /api/indicators/bollinger-bands
+---
+
+<ComponentPreview name="indicators-bands" />
+
+## Usage
+
+```tsx
+<BollingerBands period={20} multiplier={2} />
+<Indicator definition={indicators.keltner} />
+<Indicator definition={indicators.donchian} inputs={{ period: 55 }} />
+<Indicator definition={indicators.envelope} />
+```
+
+| Id          | Indicator                               | Calculator  |
+| ----------- | --------------------------------------- | ----------- |
+| `bollinger` | Moving average ± standard deviations    | `bollinger` |
+| `keltner`   | Moving average ± ATR multiples          | `keltner`   |
+| `donchian`  | Highest high / lowest low over a period | `donchian`  |
+| `envelope`  | Moving average ± a percentage           | `envelope`  |
+
+Every band calculator returns `{ upper, middle, lower }`. The band between `upper` and `lower` is filled; hide the
+fill with `showFills={false}`.

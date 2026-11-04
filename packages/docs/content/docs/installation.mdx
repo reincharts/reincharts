@@ -1,0 +1,70 @@
+---
+title: Installation
+description: Add Reincharts to a React 18 or 19 project.
+---
+
+## Install the packages you need (recommended)
+
+Reincharts is split into small packages, so you only ship what you use. A typical interactive chart needs the core, a
+series package, axes, the crosshair and tooltips:
+
+```npm
+npm install @reincharts/core @reincharts/series @reincharts/axes @reincharts/coordinates @reincharts/tooltip
+```
+
+Add more as you need them:
+
+| Package                   | Add it for                                     |
+| ------------------------- | ---------------------------------------------- |
+| `@reincharts/annotations` | Reference lines and areas, markers, labels     |
+| `@reincharts/interactive` | Drawing tools, brush selection, zoom buttons   |
+| `@reincharts/indicators`  | Technical indicators (RSI, MACD, Bollinger...) |
+| `@reincharts/datafeed`    | Loading data from a backend, realtime, replay  |
+| `@reincharts/widget`      | The complete `<TradingChart>` component        |
+
+Every example on this site imports from the individual packages:
+
+```tsx
+import { ChartCanvas, Pane } from "@reincharts/core";
+import { LineSeries } from "@reincharts/series";
+import { XAxis, YAxis } from "@reincharts/axes";
+```
+
+## Or install everything
+
+The umbrella package `reincharts` re-exports every `@reincharts/*` package from a single entry point. It is convenient
+for prototypes; bundlers tree-shake what you don't use.
+
+```npm
+npm install reincharts
+```
+
+```tsx nocheck
+import { ChartCanvas, LineSeries, Pane, XAxis, YAxis } from "reincharts";
+```
+
+## Requirements
+
+- **React 18 or 19** (`react` and `react-dom` are peer dependencies).
+- **An ESM-aware bundler**: Next.js, Vite, React Router, Rsbuild, webpack 5... Reincharts ships ES modules only.
+- **A browser with `<canvas>`, `ResizeObserver` and Pointer Events**, which is every evergreen browser.
+- **TypeScript is optional** but recommended; type definitions are included.
+
+There are no other runtime dependencies.
+
+## Styles
+
+Charts need no CSS: they render canvases and set their own inline styles. Only the DOM toolbars ship a small stylesheet;
+import it once if you use them:
+
+```tsx
+import "@reincharts/interactive/styles.css"; // drawing toolbar, style toolbar, zoom buttons
+import "@reincharts/widget/styles.css"; // <TradingChart> UI (includes the interactive stylesheet)
+```
+
+With the umbrella package, `import "reincharts/styles.css"` includes both.
+
+<Cards>
+  <Card title="Quick start" href="/docs/quick-start" description="Render your first chart." />
+  <Card title="Next.js & Vite" href="/docs/frameworks" description="Client components, SSR and bundler notes." />
+</Cards>

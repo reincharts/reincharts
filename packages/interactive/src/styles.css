@@ -1,0 +1,448 @@
+/* @reincharts/interactive — drawing toolbar, style toolbar, zoom buttons, inline text editor. */
+
+.rc-dt,
+.rc-dst,
+.rc-zoom-buttons {
+    --rc-bg: #ffffff;
+    --rc-panel: #ffffff;
+    --rc-text: #131722;
+    --rc-muted: #787b86;
+    --rc-hover: #f0f3fa;
+    --rc-active: #e3effd;
+    --rc-accent: #2962ff;
+    --rc-border: #e0e3eb;
+    --rc-shadow: 0 2px 4px rgba(19, 23, 34, 0.06), 0 8px 24px rgba(19, 23, 34, 0.14);
+    --rc-radius: 6px;
+    --rc-font: -apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif;
+    font-family: var(--rc-font);
+    font-size: 13px;
+    color: var(--rc-text);
+    box-sizing: border-box;
+}
+
+.rc-dt[data-theme="dark"],
+.rc-dst[data-theme="dark"],
+.rc-zoom-buttons[data-theme="dark"],
+[data-theme="dark"] .rc-dt:not([data-theme="light"]),
+.dark .rc-dt:not([data-theme="light"]) {
+    --rc-bg: #131722;
+    --rc-panel: #1e222d;
+    --rc-text: #d1d4dc;
+    --rc-muted: #868993;
+    --rc-hover: #2a2e39;
+    --rc-active: #142e61;
+    --rc-accent: #5b8cff;
+    --rc-border: #363a45;
+    --rc-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.rc-dt button,
+.rc-dst button,
+.rc-zoom-buttons button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.rc-dt svg,
+.rc-dst svg,
+.rc-zoom-buttons svg {
+    display: block;
+    flex: none;
+}
+
+/* ------------------------------------------------------------ drawing toolbar */
+
+.rc-dt {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 4px;
+    background: var(--rc-bg);
+    border-right: 1px solid var(--rc-border);
+    user-select: none;
+}
+
+.rc-dt-vertical {
+    max-height: 100%;
+}
+
+.rc-dt-horizontal {
+    flex-direction: row;
+    border-right: 0;
+    border-bottom: 1px solid var(--rc-border);
+}
+
+.rc-dt-item {
+    position: relative;
+    display: flex;
+}
+
+.rc-dt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--rc-radius);
+    transition: background-color 0.1s;
+}
+
+.rc-dt-btn:hover {
+    background: var(--rc-hover);
+}
+
+.rc-dt-btn.rc-active,
+.rc-dt-btn[aria-pressed="true"] {
+    color: var(--rc-accent);
+    background: var(--rc-active);
+}
+
+.rc-dt-arrow {
+    position: absolute;
+    right: -4px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: var(--rc-muted);
+    opacity: 0;
+    border-radius: 3px;
+    transition: opacity 0.1s;
+}
+
+.rc-dt-item:hover .rc-dt-arrow,
+.rc-dt-arrow.rc-open {
+    opacity: 1;
+}
+
+.rc-dt-arrow:hover {
+    background: var(--rc-hover);
+    color: var(--rc-text);
+}
+
+.rc-dt-horizontal .rc-dt-arrow {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    width: auto;
+    height: 10px;
+    transform: rotate(0deg);
+}
+
+.rc-dt-horizontal .rc-dt-arrow svg {
+    transform: rotate(90deg);
+}
+
+.rc-dt-sep {
+    width: 24px;
+    height: 1px;
+    margin: 3px 0;
+    background: var(--rc-border);
+}
+
+.rc-dt-horizontal .rc-dt-sep {
+    width: 1px;
+    height: 24px;
+    margin: 0 4px;
+}
+
+.rc-dt-sep:first-child {
+    display: none;
+}
+
+.rc-dt-flyout {
+    /* positioned (fixed) by the component so overflow containers can't clip it */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 230px;
+    padding: 6px 0;
+    background: var(--rc-panel);
+    border-radius: var(--rc-radius);
+    box-shadow: var(--rc-shadow);
+}
+
+.rc-dt-flyout-title {
+    padding: 6px 16px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--rc-muted);
+}
+
+.rc-dt-menurow {
+    display: flex;
+    align-items: center;
+}
+
+.rc-dt-menuitem {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 12px 0 8px !important;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.rc-dt-menurow:hover,
+.rc-dt-flyout > .rc-dt-menuitem:hover {
+    background: var(--rc-hover);
+}
+
+.rc-dt-menuitem.rc-active {
+    color: var(--rc-accent);
+}
+
+.rc-dt-star {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px !important;
+    color: var(--rc-muted);
+    opacity: 0;
+}
+
+.rc-dt-star svg {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+}
+
+.rc-dt-menurow:hover .rc-dt-star,
+.rc-dt-star.rc-active {
+    opacity: 1;
+}
+
+.rc-dt-star.rc-active {
+    color: #ffb300;
+}
+
+.rc-dt-star.rc-active svg {
+    fill: currentColor;
+}
+
+/* ------------------------------------------------------------ floating style toolbar */
+
+.rc-dst {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    transform: translateX(-50%);
+    background: var(--rc-panel);
+    border: 1px solid var(--rc-border);
+    border-radius: var(--rc-radius);
+    box-shadow: var(--rc-shadow);
+    pointer-events: auto;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.rc-dst-item {
+    position: relative;
+    display: flex;
+}
+
+.rc-dst-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+.rc-dst-btn:hover,
+.rc-dst-option:hover {
+    background: var(--rc-hover);
+}
+
+.rc-dst-btn.rc-active {
+    color: var(--rc-accent);
+    background: var(--rc-active);
+}
+
+.rc-dst-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.rc-dst-wide {
+    padding: 0 6px 0 2px !important;
+    font-size: 12px;
+}
+
+.rc-dst-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+
+.rc-dst-fill {
+    border-radius: 3px;
+}
+
+.rc-dst-sep {
+    width: 1px;
+    height: 20px;
+    margin: 0 3px;
+    background: var(--rc-border);
+}
+
+.rc-dst-popup {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    padding: 6px;
+    background: var(--rc-panel);
+    border: 1px solid var(--rc-border);
+    border-radius: var(--rc-radius);
+    box-shadow: var(--rc-shadow);
+}
+
+.rc-dst-colors {
+    display: grid;
+    grid-template-columns: repeat(7, 22px);
+    gap: 4px;
+}
+
+.rc-dst-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+
+.rc-dst-swatch.rc-active {
+    outline: 2px solid var(--rc-accent);
+    outline-offset: 1px;
+}
+
+.rc-dst-list {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    min-width: 150px;
+}
+
+.rc-dst-option {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px 0 6px !important;
+    text-align: left;
+}
+
+.rc-dst-option.rc-active {
+    color: var(--rc-accent);
+}
+
+.rc-dst-select,
+.rc-dst-input {
+    height: 28px;
+    padding: 0 6px;
+    font: inherit;
+    color: var(--rc-text);
+    background: var(--rc-panel);
+    border: 1px solid var(--rc-border);
+    border-radius: 4px;
+    outline: none;
+}
+
+.rc-dst-input:focus,
+.rc-dst-select:focus {
+    border-color: var(--rc-accent);
+}
+
+/* ------------------------------------------------------------ zoom buttons */
+
+.rc-zoom-buttons {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    gap: 6px;
+    transform: translate(-50%, -100%);
+    pointer-events: auto;
+    transition: opacity 0.15s;
+}
+
+.rc-zoom-buttons.rc-autohide {
+    opacity: 0;
+}
+
+.rc-chart:hover .rc-zoom-buttons.rc-autohide,
+.rc-zoom-buttons.rc-autohide:focus-within {
+    opacity: 1;
+}
+
+.rc-zoom-buttons button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--rc-panel);
+    border: 1px solid var(--rc-border);
+    box-shadow: 0 1px 3px rgba(19, 23, 34, 0.12);
+}
+
+.rc-zoom-buttons button:hover {
+    color: var(--rc-accent);
+    background: var(--rc-hover);
+}
+
+.rc-zoom-buttons svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* ------------------------------------------------------------ inline text editor */
+
+.rc-text-editor {
+    position: absolute;
+    z-index: 10;
+    margin: 0;
+    padding: 1px;
+    line-height: 1.3;
+    background: transparent;
+    border: 1px dashed;
+    border-radius: 2px;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+}
+
+/* ------------------------------------------------------------ cursors */
+
+.rc-dt button:not(:disabled),
+.rc-dst button:not(:disabled),
+.rc-zoom-buttons button:not(:disabled) {
+    cursor: pointer;
+}
+
+.rc-dt button:disabled,
+.rc-dst button:disabled,
+.rc-zoom-buttons button:disabled {
+    cursor: default;
+}

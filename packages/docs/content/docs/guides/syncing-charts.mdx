@@ -1,0 +1,28 @@
+---
+title: Syncing charts
+description: Share the crosshair and the visible range between charts.
+examples: /examples/synced-charts
+api: /api/core/chart-canvas
+---
+
+Give charts the same `syncId` to share the crosshair position (by time, so charts with different data still line up).
+Add `syncRange` to also pan and zoom them together.
+
+<ComponentPreview name="sync" height={460} />
+
+```tsx
+<ChartCanvas data={traffic} syncId="dashboard" syncRange>{/* ... */}</ChartCanvas>
+<ChartCanvas data={breadth} syncId="dashboard" syncRange>{/* ... */}</ChartCanvas>
+```
+
+Charts in the same page join a group by id; unmounting a chart leaves the group. Charts driven by another chart in the
+group show only the vertical crosshair line.
+
+## Multi-chart layouts
+
+`<TradingChart layout="4">` puts up to four charts in one widget (`"2h"`, `"2v"`, `"3"`, `"4"`), each with its own
+symbol, with crosshairs always synced and `syncRange` to pan and zoom them together.
+
+[See the multi-chart layouts example →](/examples/trading-chart/layouts)
+
+See [Layouts & replay](/docs/trading-chart/layouts).

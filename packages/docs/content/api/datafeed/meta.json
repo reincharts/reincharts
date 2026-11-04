@@ -1,0 +1,12 @@
+{
+  "title": "@reincharts/datafeed",
+  "pages": [
+    "---Hooks---",
+    "use-bar-replay",
+    "use-datafeed",
+    "---Reference---",
+    "functions",
+    "constants",
+    "types"
+  ]
+}

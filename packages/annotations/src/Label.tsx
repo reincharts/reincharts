@@ -1,109 +1,130 @@
-import { GenericChartComponent, functor } from "@reincharts/core";
-import { ScaleContinuousNumeric } from "d3-scale";
-import * as React from "react";
+import { drawLabel, font as themeFont, useChart, useRenderable, type DrawScope } from "@reincharts/core";
+import { fromEdge, pixelX, type DataX } from "./coords";
+import { svgPath } from "./shapes";
 
 export interface LabelProps {
-    /** Data point associated with this label. */
-    readonly data?: any;
-    /** Fill color for the label text, can be static string or function based on data. */
-    readonly fillStyle?: string | ((data: any) => string);
-    /** Font family for the label text. */
-    readonly fontFamily?: string;
-    /** Font size for the label text in pixels. */
+    /** Text to draw (optional with `path`). */
+    readonly text?: string;
+    /** x in data units (Date / number / category) or pixels (see `units`). Default: plot center. */
+    readonly x?: DataX;
+    /** y as a value on the scale or pixels (see `units`). Default: plot middle. */
+    readonly y?: number;
+    /** "data" (default) positions with the chart scales; "pixel" uses plot pixels (negative = from the right / bottom). */
+    readonly units?: "data" | "pixel";
+    /** Pixel offset applied after positioning. */
+    readonly dx?: number;
+    readonly dy?: number;
+    /** Horizontal alignment relative to the point. Default "left". */
+    readonly align?: "left" | "center" | "right";
+    /** Vertical alignment relative to the point. Default "middle". */
+    readonly baseline?: "top" | "middle" | "bottom";
+    /** Full CSS font; overrides fontSize / fontWeight. */
+    readonly font?: string;
+    /** Font size in pixels. Defaults to theme.fontSize + 1. */
     readonly fontSize?: number;
-    /** Font weight for the label text (normal, bold, etc.). */
-    readonly fontWeight?: string;
-    /** Rotation angle for the label text in degrees. */
+    readonly fontWeight?: string | number;
+    /** Text (and path) color. Defaults to theme.text. */
+    readonly color?: string;
+    /** Draws the text inside a filled rounded box. */
+    readonly background?: string;
+    /** Box border color (with `background`). */
+    readonly border?: string;
+    /** Rotation in degrees around the point. */
     readonly rotate?: number;
-    /** Function to select which canvas to draw on from available canvases. */
-    readonly selectCanvas?: (canvases: any) => any;
-    /** Text content of the label, can be static string or function based on data. */
-    readonly text?: string | ((data: any) => string);
-    /** Text alignment for the label (left, center, right, etc.). */
-    readonly textAlign?: CanvasTextAlign;
-    /** X position of the label, can be static number or function that calculates position. */
-    readonly x:
-        | number
-        | ((xScale: ScaleContinuousNumeric<number, number>, xAccessor: any, data: any, plotData: any[]) => number);
-    /** Function to extract x-value from data points. */
-    readonly xAccessor?: (data: any) => any;
-    /** D3 scale for x-axis positioning. */
-    readonly xScale?: ScaleContinuousNumeric<number, number>;
-    /** Y position of the label, can be static number or function that calculates position. */
-    readonly y: number | ((yScale: ScaleContinuousNumeric<number, number>, data: any, plotData: any[]) => number);
-    /** D3 scale for y-axis positioning. */
-    readonly yScale?: ScaleContinuousNumeric<number, number>;
+    /** SVG path drawn at the point; its (0, 0) is placed on the point. */
+    readonly path?: string;
+    /** Scale factor for `path`. Default 1. */
+    readonly pathScale?: number;
+    /** Stroke color for `path` (filled with `color` otherwise). */
+    readonly pathStroke?: string;
+    /** Pane id; `null` draws relative to the whole chart (pixel units). Defaults to the enclosing pane. */
+    readonly pane?: string | null;
+    /** Price scale id. Default "right". */
+    readonly scale?: string;
+    /** Draw over series (default 60) or below them (negative). */
+    readonly zIndex?: number;
 }
 
-export class Label extends React.Component<LabelProps> {
-    public static defaultProps = {
-        fontFamily: "-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif",
-        fontSize: 64,
-        fontWeight: "bold",
-        fillStyle: "#dcdcdc",
-        rotate: 0,
-        textAlign: "center",
-        text: "",
-        x: ({ xScale, xAccessor, data }: any) => xScale(xAccessor(data)),
-        selectCanvas: (canvases: any) => canvases.bg,
-    };
-
-    public render() {
-        const { selectCanvas } = this.props;
-
-        return <GenericChartComponent canvasToDraw={selectCanvas} canvasDraw={this.drawOnCanvas} drawOn={[]} />;
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const { textAlign, fontFamily, fontSize, fontWeight, rotate } = this.props;
-
-        const { xScale, chartConfig, xAccessor } = moreProps;
-        const { yScale } = chartConfig;
-
-        const { xPos, yPos, fillStyle, text } = this.helper(moreProps, xAccessor, xScale, yScale);
-
-        ctx.save();
-        ctx.translate(xPos, yPos);
-        if (rotate !== undefined) {
-            const radians = (rotate / 180) * Math.PI;
-            ctx.rotate(radians);
-        }
-
-        if (fontFamily !== undefined) {
-            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        }
-        if (fillStyle !== undefined) {
-            ctx.fillStyle = fillStyle;
-        }
-        if (textAlign !== undefined) {
-            ctx.textAlign = textAlign;
-        }
-
-        ctx.beginPath();
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
-    };
-
-    private readonly helper = (
-        moreProps: any,
-        xAccessor: any,
-        xScale: ScaleContinuousNumeric<number, number>,
-        yScale: ScaleContinuousNumeric<number, number>,
-    ) => {
-        const { x, y, data, fillStyle, text } = this.props;
-
-        const { plotData } = moreProps;
-
-        const xFunc = functor(x);
-        const yFunc = functor(y);
-
-        const [xPos, yPos] = [xFunc({ xScale, xAccessor, data, plotData }), yFunc({ yScale, data, plotData })];
-
-        return {
-            xPos,
-            yPos,
-            text: functor(text)(data),
-            fillStyle: functor(fillStyle)(data),
-        };
-    };
+/** Text (and/or an SVG path) at a data or pixel position. */
+export function Label({
+    text,
+    x,
+    y,
+    units = "data",
+    dx = 0,
+    dy = 0,
+    align = "left",
+    baseline = "middle",
+    font,
+    fontSize,
+    fontWeight = "normal",
+    color,
+    background,
+    border,
+    rotate = 0,
+    path,
+    pathScale = 1,
+    pathStroke,
+    pane,
+    scale,
+    zIndex = 60,
+}: LabelProps) {
+    const engine = useChart();
+    useRenderable({
+        pane,
+        scale,
+        zIndex,
+        draw(ctx, scope: DrawScope) {
+            const { theme, layout } = scope;
+            const area = scope.pane ?? { width: layout.width, height: layout.height };
+            const offsetX = scope.pane ? 0 : layout.plotLeft;
+            let px: number;
+            let py: number;
+            if (units === "pixel" || x === undefined) {
+                px = x === undefined ? area.width / 2 : fromEdge(Number(x), area.width);
+            } else {
+                px = offsetX + pixelX(engine, x);
+            }
+            if (units === "pixel" || y === undefined || !scope.pane) {
+                py = y === undefined ? area.height / 2 : fromEdge(y, area.height);
+            } else {
+                py = scope.y(y);
+            }
+            if (!Number.isFinite(px) || !Number.isFinite(py)) {
+                return;
+            }
+            const c = color ?? theme.text;
+            ctx.translate(px + dx, py + dy);
+            if (rotate) {
+                ctx.rotate((rotate * Math.PI) / 180);
+            }
+            if (path) {
+                ctx.save();
+                ctx.scale(pathScale, pathScale);
+                if (pathStroke) {
+                    ctx.strokeStyle = pathStroke;
+                    ctx.lineWidth = 1 / pathScale;
+                    ctx.stroke(svgPath(path));
+                } else {
+                    ctx.fillStyle = c;
+                    ctx.fill(svgPath(path));
+                }
+                ctx.restore();
+            }
+            if (!text) {
+                return;
+            }
+            const f = font ?? themeFont(theme, fontSize ?? theme.fontSize + 1, String(fontWeight));
+            if (background) {
+                drawLabel(ctx, { text, x: 0, y: 0, align, baseline, background, border, color: c, font: f });
+                return;
+            }
+            ctx.font = f;
+            ctx.fillStyle = c;
+            ctx.textAlign = align;
+            ctx.textBaseline = baseline;
+            ctx.fillText(text, 0, 0);
+        },
+    });
+    return null;
 }

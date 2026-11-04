@@ -1,0 +1,4 @@
+{
+  "title": "Chart Types",
+  "pages": ["index", "line", "area", "bar", "horizontal-bar", "scatter", "error-bars"]
+}

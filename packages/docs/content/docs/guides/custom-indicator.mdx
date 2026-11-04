@@ -1,0 +1,71 @@
+---
+title: Custom indicator
+description: Define an indicator with defineIndicator and use it like a built-in one.
+examples: /examples/indicators/custom-indicator
+api: /api/indicators/functions#defineindicator
+---
+
+<ComponentPreview name="custom-indicator" height={460} />
+
+`defineIndicator` types an `IndicatorDefinition`: inputs, outputs, levels, fills and a `calculate` function. Pass it to
+`<Indicator>` and you get rendering, autoscale, a legend item, magnet snapping and style overrides for free, exactly like
+the built-in indicators. This example is Bollinger **%B**: where the close sits inside the bands.
+
+```tsx
+import { bollinger, defineIndicator, Indicator } from "@reincharts/indicators";
+
+const percentB = defineIndicator<{ period: number; multiplier: number }>({
+  id: "percentB",
+  name: "Bollinger %B",
+  shortName: "%B", // legend: "%B 20 2"
+  category: "volatility",
+  overlay: false, // needs its own pane
+  inputs: {
+    period: { type: "number", label: "Length", default: 20, min: 1 },
+    multiplier: { type: "number", label: "StdDev", default: 2, min: 0.1, step: 0.1 },
+  },
+  outputs: {
+    pb: {
+      type: "line",
+      label: "%B",
+      color: "#0ea5e9",
+      colorFn: (v) => (v > 1 ? "#ef4444" : v < 0 ? "#10b981" : "#0ea5e9"),
+    },
+  },
+  levels: [{ value: 1 }, { value: 0.5 }, { value: 0 }],
+  fills: [{ between: [1, 0], color: "rgba(14, 165, 233, 0.08)" }],
+  calculate(data, { period, multiplier }) {
+    const { upper, lower } = bollinger(data, { period, multiplier });
+    return {
+      pb: data.map((d, i) =>
+        upper[i] === undefined || lower[i] === undefined ? undefined : (d.close - lower[i]!) / (upper[i]! - lower[i]!),
+      ),
+    };
+  },
+});
+
+<Pane>
+  <Indicator definition={percentB} inputs={{ period: 20 }} />
+</Pane>;
+```
+
+## Definition reference
+
+- **inputs** are user settings. Their keys are passed to `calculate`, and `type` (`"number"`, `"source"`, `"select"`,
+  `"boolean"`, `"color"`) tells settings dialogs how to edit them. The declaration order is the legend name order.
+- **outputs** are the arrays returned by `calculate`, keyed the same way, drawn as `"line"`, `"histogram"`, `"area"`,
+  `"dots"` or `"step"`. `colorFn` colors histograms / dots per bar, `offset` shifts an output (Ichimoku), `hidden`
+  outputs start hidden.
+- **levels** are horizontal reference lines, **fills** fill between two outputs, an output and a value, or two values.
+- **scale** gives hints: a `domain` always included with `fitDomain`, the legend `precision`, `compact` labels.
+- **calculate(data, inputs)** is memoized on the chart data and inputs.
+
+To make an indicator available by id (saved layouts, pickers), add it to your own map next to the built-in
+`indicators` registry: `const myIndicators = { ...indicators, percentB }`. With `<TradingChart>`, pass it as
+[`extraIndicators`](/docs/trading-chart/indicators#custom-indicators).
+
+## Helpers for settings UIs
+
+`defaultInputs(definition)` returns the default inputs, `resolveInputs(definition, partial)` merges user inputs over
+them, and `indicatorName(definition, inputs)` builds the legend name ("%B 20 2"). `priceSources` and
+`movingAverageTypes` list the options of `"source"` and moving average `"select"` inputs.

@@ -1,76 +1,50 @@
-import { ScaleContinuousNumeric, ScaleTime } from "d3-scale";
-import * as React from "react";
-import { getAxisCanvas, getStrokeDasharrayCanvas, GenericChartComponent, strokeDashTypes } from "@reincharts/core";
+import { applyStroke, horizontalLine, useChart, verticalLine, type LineDash } from "@reincharts/core";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface StraightLineProps {
-    /** Dash style for the line stroke. */
-    readonly lineDash?: strokeDashTypes | number[];
-    /** Width of the line stroke. */
-    readonly lineWidth?: number;
-    /** Color of the line stroke. */
-    readonly strokeStyle?: string;
-    /** Type of line orientation. */
-    readonly type?: "vertical" | "horizontal";
-    /** Y-axis value for horizontal lines. */
-    readonly yValue?: number;
-    /** X-axis value for vertical lines. */
-    readonly xValue?: number;
+export interface StraightLineProps extends Omit<SeriesProps, "legend"> {
+    /** "horizontal" (default): a line at a price / y value; "vertical": a line at an x value. */
+    readonly type?: "horizontal" | "vertical";
+    /** Y value of a horizontal line, or x value (Date, timestamp, number or category index) of a vertical line. */
+    readonly value: number | Date;
+    /** Line color. Defaults to theme.textMuted. */
+    readonly color?: string;
+    /** Line width. Default 1. */
+    readonly width?: number;
+    /** Dash style. Default "dashed". */
+    readonly dash?: LineDash;
+    /** Include a horizontal line's value in the price scale autoscale. Default false. */
+    readonly autoscale?: boolean;
 }
 
-export class StraightLine extends React.Component<StraightLineProps> {
-    public static defaultProps = {
-        lineWidth: 1,
-        lineDash: "Solid",
-        strokeStyle: "rgba(0, 0, 0, 0.5)",
-        type: "horizontal",
-    };
-
-    public render() {
-        return <GenericChartComponent canvasDraw={this.drawOnCanvas} canvasToDraw={getAxisCanvas} drawOn={["pan"]} />;
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const { type, strokeStyle, lineWidth, lineDash, yValue, xValue } = this.props;
-
-        const {
-            xScale,
-            chartConfig: { yScale, width, height },
-        } = moreProps;
-
-        ctx.beginPath();
-
-        if (strokeStyle !== undefined) {
-            ctx.strokeStyle = strokeStyle;
-        }
-        if (lineWidth !== undefined) {
-            ctx.lineWidth = lineWidth;
-        }
-        if (lineDash !== undefined) {
-            if (typeof lineDash === "string") {
-                ctx.setLineDash(getStrokeDasharrayCanvas(lineDash));
+/** A horizontal or vertical reference line across the pane (thresholds, targets, overbought / oversold levels). */
+export function StraightLine({
+    type = "horizontal",
+    value,
+    color,
+    width = 1,
+    dash = "dashed",
+    autoscale = false,
+    ...rest
+}: StraightLineProps) {
+    const engine = useChart();
+    const v = value instanceof Date ? value.getTime() : value;
+    const horizontal = type === "horizontal";
+    useSeries({
+        ...rest,
+        legend: false,
+        lastValue: false,
+        autoscale: horizontal && autoscale,
+        values: () => undefined,
+        extentIncludes: [v],
+        color: (_d, _i, theme) => color ?? theme.textMuted,
+        draw(ctx, { y, theme, pane }) {
+            applyStroke(ctx, { color: color ?? theme.textMuted, width, dash });
+            if (horizontal) {
+                horizontalLine(ctx, y(v), 0, pane?.width ?? 0);
             } else {
-                ctx.setLineDash(lineDash);
+                verticalLine(ctx, engine.xOfLogical(engine.logicalOfTime(v)), 0, pane?.height ?? 0);
             }
-        }
-
-        const { x1, y1, x2, y2 } = this.getLineCoordinates(type, xScale, yScale, xValue, yValue, width, height);
-
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-    };
-
-    private readonly getLineCoordinates = (
-        type: "horizontal" | "vertical" | undefined,
-        xScale: ScaleContinuousNumeric<number, number> | ScaleTime<number, number>,
-        yScale: ScaleContinuousNumeric<number, number>,
-        xValue: number | undefined,
-        yValue: number | undefined,
-        width: number,
-        height: number,
-    ) => {
-        return type === "horizontal"
-            ? { x1: 0, y1: Math.round(yScale(yValue!)), x2: width, y2: Math.round(yScale(yValue!)) }
-            : { x1: Math.round(xScale(xValue!)), y1: 0, x2: Math.round(xScale(xValue!)), y2: height };
-    };
+        },
+    });
+    return null;
 }

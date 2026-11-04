@@ -1,52 +1,77 @@
 {
-    "name": "reincharts",
-    "version": "1.0.0",
-    "description": "Interactive charts for React.",
-    "main": "./lib/index.js",
-    "types": "./lib/index.d.ts",
-    "files": [
-        "lib",
-        "src"
-    ],
-    "sideEffects": false,
-    "author": "reincharts",
-    "keywords": [
-        "chart",
-        "charts",
-        "charting",
-        "canvas",
-        "svg",
-        "interactive",
-        "react",
-        "d3"
-    ],
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/reincharts/reincharts.git"
+  "name": "reincharts",
+  "version": "2.0.0",
+  "description": "Interactive, canvas-rendered charts for React: line, area, bar, scatter and financial charts with pan, zoom, crosshair, annotations and drawing tools.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./styles.css": "./dist/styles.css"
     },
-    "bugs": {
-        "url": "https://github.com/reincharts/reincharts/issues"
-    },
-    "scripts": {
-        "build": "npm run clean && npm run compile",
-        "clean": "rimraf lib",
-        "compile": "tsc -p tsconfig.json"
-    },
-    "dependencies": {
-        "@reincharts/annotations": "file:../annotations",
-        "@reincharts/axes": "file:../axes",
-        "@reincharts/coordinates": "file:../coordinates",
-        "@reincharts/core": "file:../core",
-        "@reincharts/indicators": "file:../indicators",
-        "@reincharts/interactive": "file:../interactive",
-        "@reincharts/scales": "file:../scales",
-        "@reincharts/series": "file:../series",
-        "@reincharts/tooltip": "file:../tooltip",
-        "@reincharts/utils": "file:../utils"
-    },
-    "peerDependencies": {
-        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
-        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
-    }
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reincharts/reincharts.git",
+    "directory": "packages/charts"
+  },
+  "homepage": "https://reincharts.com",
+  "bugs": {
+    "url": "https://github.com/reincharts/reincharts/issues"
+  },
+  "keywords": [
+    "react",
+    "chart",
+    "charts",
+    "financial",
+    "trading",
+    "tradingview",
+    "candlestick",
+    "canvas",
+    "stock",
+    "technical-analysis"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "test": "vitest run --project unit --passWithNoTests",
+    "test:visual": "vitest run --project browser --passWithNoTests"
+  },
+  "dependencies": {
+    "@reincharts/core": "workspace:*",
+    "@reincharts/series": "workspace:*",
+    "@reincharts/indicators": "workspace:*",
+    "@reincharts/axes": "workspace:*",
+    "@reincharts/coordinates": "workspace:*",
+    "@reincharts/tooltip": "workspace:*",
+    "@reincharts/annotations": "workspace:*",
+    "@reincharts/interactive": "workspace:*",
+    "@reincharts/datafeed": "workspace:*",
+    "@reincharts/widget": "workspace:*"
+  },
+  "devDependencies": {
+    "@reincharts/testing": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  }
 }

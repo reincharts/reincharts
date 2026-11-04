@@ -1,177 +1,143 @@
-import { functor, getAxisCanvas, GenericChartComponent, plotDataLengthBarWidth } from "@reincharts/core";
-import { group } from "d3-array";
-import { ScaleContinuousNumeric, ScaleTime } from "d3-scale";
-import * as React from "react";
+import { accessor, functor, type Accessor, type Functor, type Theme } from "@reincharts/core";
+import { barLeft, barWidth, PathBatch } from "./geometry";
+import { ohlcLegend } from "./ohlc";
+import { drawOhlcColumns, ohlcExtent } from "./aggregate";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface ICandle {
-    readonly x: number;
-    readonly y: number;
-    readonly height: number;
-    readonly fillStyle: string;
-    readonly strokeStyle: string;
-    readonly direction: number;
-    readonly width: number;
-    readonly wick: {
-        readonly stroke: string;
-        readonly x: number;
-        readonly y1: number;
-        readonly y2: number;
-        readonly y3: number;
-        readonly y4: number;
-    };
+export interface OHLCAccessors<T> {
+    /** Open accessor. Default "open". */
+    /** Open price accessor (field name or function). Default `"open"`. */
+    readonly open?: Accessor<T>;
+    /** High accessor. Default "high". */
+    /** High price accessor (field name or function). Default `"high"`. */
+    readonly high?: Accessor<T>;
+    /** Low accessor. Default "low". */
+    /** Low price accessor (field name or function). Default `"low"`. */
+    readonly low?: Accessor<T>;
+    /** Close accessor. Default "close". */
+    /** Close price accessor (field name or function). Default `"close"`. */
+    readonly close?: Accessor<T>;
 }
 
-export interface CandlestickSeriesProps {
-    /** Width of the candle stroke. */
-    readonly candleStrokeWidth?: number;
-    /** Whether to clip the series to chart area. */
-    readonly clip?: boolean;
-    /** Fill color or function for candles. */
-    readonly fillStyle?: string | ((data: any) => string);
-    /** Stroke color or function for candles. */
-    readonly strokeStyle?: string | ((data: any) => string);
-    /** Stroke color or function for candle wicks. */
-    readonly wickStroke?: string | ((data: any) => string);
-    readonly width?: number | ((props: CandlestickSeriesProps, moreProps: any) => number);
-    /** Ratio of candle width to available space. */
+export interface CandlestickSeriesProps<T = any> extends SeriesProps, OHLCAccessors<T> {
+    /** Body color for rising candles. Defaults to theme.up. */
+    readonly upColor?: string;
+    /** Body color for falling candles. Defaults to theme.down. */
+    readonly downColor?: string;
+    /** Per-candle body color (overrides up/down). Also renders Heikin Ashi data unchanged. */
+    readonly fill?: Functor<T, string>;
+    /** Wick color (defaults to the body color). */
+    readonly wickColor?: Functor<T, string>;
+    /** Border color (defaults to the body color). */
+    readonly borderColor?: Functor<T, string>;
+    /** Draw rising candles hollow ("hollow candles"). */
+    readonly hollow?: boolean;
+    /** Body width as a fraction of bar spacing. Default 0.8. */
     readonly widthRatio?: number;
-    readonly yAccessor: (data: any) => { open: number; high: number; low: number; close: number } | undefined;
+    /** Per-candle body width multiplier in 0..1 (e.g. volume-weighted candles). Default 1. */
+    readonly widthFactor?: (d: T, index: number) => number;
 }
 
-export class CandlestickSeries extends React.Component<CandlestickSeriesProps> {
-    public static defaultProps = {
-        candleStrokeWidth: 0.5,
-        clip: true,
-        fillStyle: (d: any) => (d.close > d.open ? "#26a675ff" : "#e93b3bff"),
-        strokeStyle: "rgba(0, 0, 0, 0)",
-        wickStroke: (d: any) => (d.close > d.open ? "#26a675ff" : "#e93b3bff"),
-        width: plotDataLengthBarWidth,
-        widthRatio: 0.8,
-        yAccessor: (d: any) => ({ open: d.open, high: d.high, low: d.low, close: d.close }),
-    };
+/** Candlesticks (also hollow candles and Heikin Ashi data). Batches all candles per color. */
+export function CandlestickSeries<T = any>({
+    open = "open" as Accessor<T>,
+    high = "high" as Accessor<T>,
+    low = "low" as Accessor<T>,
+    close = "close" as Accessor<T>,
+    upColor,
+    downColor,
+    fill,
+    wickColor,
+    borderColor,
+    hollow = false,
+    widthRatio = 0.8,
+    widthFactor,
+    ...rest
+}: CandlestickSeriesProps<T>) {
+    const o = accessor(open);
+    const h = accessor(high);
+    const l = accessor(low);
+    const c = accessor(close);
+    const fillAt = fill === undefined ? undefined : functor(fill);
+    const wickAt = wickColor === undefined ? undefined : functor(wickColor);
+    const borderAt = borderColor === undefined ? undefined : functor(borderColor);
+    const colorOf = (d: T, i: number, theme: Theme) =>
+        fillAt?.(d, i) ?? (c(d, i) >= o(d, i) ? (upColor ?? theme.up) : (downColor ?? theme.down));
 
-    public render() {
-        const { clip } = this.props;
-
-        return (
-            <GenericChartComponent
-                clip={clip}
-                canvasDraw={this.drawOnCanvas}
-                canvasToDraw={getAxisCanvas}
-                drawOn={["pan"]}
-            />
-        );
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const { candleStrokeWidth = CandlestickSeries.defaultProps.candleStrokeWidth } = this.props;
-        const {
-            xScale,
-            chartConfig: { yScale },
-            plotData,
-            xAccessor,
-        } = moreProps;
-
-        const candleData = this.getCandleData(xAccessor, xScale, yScale, plotData);
-
-        const wickNest = group(candleData, (d) => d.wick.stroke);
-
-        wickNest.forEach((values, key) => {
-            ctx.fillStyle = key;
-            values.forEach((each) => {
-                const d = each.wick;
-
-                ctx.fillRect(d.x - 0.5, d.y1, 1, d.y2 - d.y1);
-                ctx.fillRect(d.x - 0.5, d.y3, 1, d.y4 - d.y3);
-            });
-        });
-
-        const candleNest = group(
-            candleData,
-            (d) => d.strokeStyle,
-            (d) => d.fillStyle,
-        );
-
-        candleNest.forEach((strokeValues, strokeKey) => {
-            ctx.strokeStyle = strokeKey;
-            ctx.lineWidth = candleStrokeWidth;
-            strokeValues.forEach((values, key) => {
-                // @ts-ignore
-                ctx.fillStyle = key;
-
-                // @ts-ignore
-                values.forEach((d) => {
-                    if (d.width <= 1) {
-                        ctx.fillRect(d.x - 0.5, d.y, 1, d.height);
-                    } else if (d.height === 0) {
-                        ctx.fillRect(d.x - 0.5, d.y, d.width, 1);
-                    } else {
-                        ctx.fillRect(d.x - 0.5, d.y, d.width, d.height);
-                        ctx.strokeRect(d.x, d.y, d.width, d.height);
-                    }
-                });
-            });
-        });
-    };
-
-    private readonly getCandleData = (
-        xAccessor: (data: any) => number | Date,
-        xScale: ScaleContinuousNumeric<number, number> | ScaleTime<number, number>,
-        yScale: ScaleContinuousNumeric<number, number>,
-        plotData: any[],
-    ) => {
-        const { fillStyle: fillProp, strokeStyle: strokeProp, yAccessor, wickStroke: wickStrokeProp } = this.props;
-
-        const fill = functor(fillProp);
-        const stroke = functor(strokeProp);
-        const wickStroke = functor(wickStrokeProp);
-        const widthFunctor = functor(this.props.width);
-        const width = widthFunctor(this.props, {
-            xScale,
-            xAccessor,
-            plotData,
-        });
-
-        const offset = 0.5 * width;
-
-        return plotData
-            .filter((d) => {
-                const ohlc = yAccessor(d);
-                if (ohlc === undefined) {
-                    return false;
+    useSeries<T>({
+        ...rest,
+        values: (d, i) => [o(d, i), h(d, i), l(d, i), c(d, i)],
+        base: (d, i) => c(d, i),
+        color: colorOf,
+        legendValues: (d, i, { format, color }) => ohlcLegend([o(d, i), h(d, i), l(d, i), c(d, i)], format, color),
+        // fast autoscale: min low / max high without allocating per bar
+        extentOf: (start, end, data) => ohlcExtent(data, start, end, l, h),
+        draw(ctx, scope) {
+            const { data, start, end, x, y, barSpacing, theme } = scope;
+            const full = barWidth(barSpacing, widthRatio);
+            const wicks = new PathBatch();
+            if (barSpacing < 1 && !widthFactor) {
+                drawOhlcColumns(
+                    ctx,
+                    scope,
+                    o,
+                    h,
+                    l,
+                    c,
+                    (up, d, i) =>
+                        wickAt?.(d, i) ?? fillAt?.(d, i) ?? (up ? (upColor ?? theme.up) : (downColor ?? theme.down)),
+                );
+                return;
+            }
+            const bodies = new PathBatch();
+            const borders = new PathBatch();
+            for (let i = start; i <= end; i++) {
+                const d = data[i];
+                const oo = o(d, i);
+                const cc = c(d, i);
+                const hh = h(d, i);
+                const ll = l(d, i);
+                if (!Number.isFinite(cc) || !Number.isFinite(oo)) {
+                    continue;
                 }
-
-                return true;
-            })
-            .map((d) => {
-                const ohlc = yAccessor(d);
-                if (ohlc === undefined) {
-                    return undefined;
+                const body = colorOf(d, i, theme);
+                const cx = Math.round(x(i));
+                const yh = Math.round(y(Number.isFinite(hh) ? hh : Math.max(oo, cc)));
+                const yl = Math.round(y(Number.isFinite(ll) ? ll : Math.min(oo, cc)));
+                const top = Math.round(y(Math.max(oo, cc)));
+                const bottom = Math.round(y(Math.min(oo, cc)));
+                const w = widthFactor
+                    ? Math.max(1, Math.round(full * Math.min(1, Math.max(0, widthFactor(d, i)))))
+                    : full;
+                const isHollow = hollow && cc >= oo;
+                const wick = wickAt?.(d, i) ?? body;
+                if (w <= 2) {
+                    wicks
+                        .get(wick)
+                        .rect(cx, Math.min(yh, top), 1, Math.max(1, Math.max(yl, bottom) - Math.min(yh, top)));
+                    continue;
                 }
-
-                const xValue = xAccessor(d);
-                const x = xScale(xValue);
-                const y = Math.round(yScale(Math.max(ohlc.open, ohlc.close)));
-                const height = Math.max(1, Math.round(Math.abs(yScale(ohlc.open) - yScale(ohlc.close))));
-
-                return {
-                    x: x - offset,
-                    y,
-                    wick: {
-                        stroke: wickStroke(ohlc),
-                        x,
-                        y1: Math.round(yScale(ohlc.high)),
-                        y2: y,
-                        y3: y + height,
-                        y4: Math.round(yScale(ohlc.low)),
-                    },
-                    height,
-                    width: offset * 2,
-                    fillStyle: fill(ohlc),
-                    strokeStyle: stroke(ohlc),
-                    direction: ohlc.close - ohlc.open,
-                };
-            })
-            .filter((d) => d !== undefined) as ICandle[];
-    };
+                const left = barLeft(cx + 0.5, w);
+                const height = Math.max(1, bottom - top);
+                // wick above and below the body (not through a hollow body)
+                if (top > yh) {
+                    wicks.get(wick).rect(cx, yh, 1, top - yh);
+                }
+                if (yl > bottom) {
+                    wicks.get(wick).rect(cx, bottom, 1, yl - bottom);
+                }
+                const border = borderAt?.(d, i) ?? (isHollow ? body : undefined);
+                if (!isHollow) {
+                    bodies.get(body).rect(left, top, w, height);
+                }
+                if (border) {
+                    borders.get(border).rect(left + 0.5, top + 0.5, w - 1, Math.max(0, height - 1));
+                }
+            }
+            wicks.fill(ctx);
+            bodies.fill(ctx);
+            borders.stroke(ctx, 1);
+        },
+    });
+    return null;
 }

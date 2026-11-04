@@ -1,0 +1,29 @@
+---
+title: "Layouts & replay"
+description: "Multi-chart layouts with synced crosshairs and ranges, and bar replay."
+examples: /examples/trading-chart/layouts
+api: /api/widget/trading-chart
+---
+
+<ComponentPreview name="widget-layout" height={600} />
+
+## Multi-chart layouts
+
+`layout` shows several charts in one widget: `"single"`, `"2h"` (side by side), `"2v"` (stacked), `"3"` (one big + two)
+or `"4"` (2 × 2). Users pick it from the toolbar; control it with `layout` + `onLayoutChange`, or set it in the state.
+The symbols of the other charts are `state.cells`.
+
+```tsx
+<TradingChart datafeed={feed} layout="4" defaultState={{ cells: ["ACME", "GLOBX", "BTCD"] }} syncRange />
+```
+
+Crosshairs are always synced between the charts of a layout; `syncRange` also syncs panning and zooming. Click a chart
+to make it active: the toolbar, legends and drawing tools act on the active chart.
+
+To sync charts outside a single widget, use `syncId` on [`<ChartCanvas>`](/docs/guides/syncing-charts).
+
+## Bar replay
+
+The replay button in the toolbar opens bar replay: pick a starting bar on the chart, then play, pause,
+step and change the speed. Indicators and drawings update as bars appear. Disable it with `replay={false}`. For your own
+replay UI, use [`useBarReplay`](/docs/datafeed#bar-replay).
