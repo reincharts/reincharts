@@ -1,0 +1,17 @@
+---
+title: "Positions"
+description: "Long and short position tools with risk / reward and P&L."
+examples: /examples/financial-drawing-tools/positions
+api: /api/interactive/constants#longposition
+---
+
+<ComponentPreview name="drawings-positions" height={460} />
+
+| Tool           | Type            | Points                         |
+| -------------- | --------------- | ------------------------------ |
+| Long position  | `longPosition`  | Entry, target, stop (2 clicks) |
+| Short position | `shortPosition` | Entry, target, stop (2 clicks) |
+
+Positions show the risk / reward ratio, target and stop distances in price and percent, and P&L for `style.quantity`.
+The user places the entry and the target; the stop is added at the same distance and can be dragged. Stored points are
+`[entry, target, stop]`. For date and price ranges see [Measure](/docs/components/drawing-tools/measure).

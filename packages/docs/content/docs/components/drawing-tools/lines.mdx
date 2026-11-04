@@ -1,0 +1,24 @@
+---
+title: "Lines"
+description: "Trend lines, rays, info lines, arrows, horizontal, vertical and cross lines."
+examples: /examples/drawing-tools/lines
+api: /api/interactive/constants#trendline
+---
+
+<ComponentPreview name="drawings-lines" height={460} />
+
+| Tool            | Type             | Points | Notes                                                        |
+| --------------- | ---------------- | ------ | ------------------------------------------------------------ |
+| Trend line      | `trendLine`      | 2      | `extend` none / left / right / both                          |
+| Ray             | `ray`            | 2      | Extends to the right                                         |
+| Extended line   | `extendedLine`   | 2      | Extends both ways                                            |
+| Info line       | `infoLine`       | 2      | Shows the change, %, number of bars, duration and angle      |
+| Arrow           | `arrow`          | 2      |                                                              |
+| Horizontal line | `horizontalLine` | 1      | Optional `text`, value label on the axis; triggers `onCross` |
+| Horizontal ray  | `horizontalRay`  | 1      | Starts at the point; triggers `onCross` after it             |
+| Vertical line   | `verticalLine`   | 1      | Time label on the axis                                       |
+| Cross line      | `crossLine`      | 1      | Both axis labels                                             |
+
+Hold `Shift` while drawing to snap lines to 45° steps. Horizontal lines double as thresholds: see
+[Alerts](/docs/components/drawing-tools/alerts). For channels and pitchforks see
+[financial drawing tools](/docs/drawing-tools/channels).

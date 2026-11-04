@@ -1,0 +1,38 @@
+---
+title: Area
+description: Gradient areas, bands between two values, and stacked areas.
+examples: /examples/area
+api: /api/series/area-series
+---
+
+An area chart is a line with a filled region below it. Use it to emphasize volume or magnitude over time, to show a
+range as a band, or to stack the parts of a total.
+
+<ComponentPreview name="area" />
+
+## Usage
+
+```tsx
+<AreaSeries />                                   // close, theme gradient
+<AreaSeries y="value" color="#10b981" />          // gradient derived from the line color
+<AreaSeries y="value" fill="rgba(0,0,0,0.1)" />   // solid fill
+<AreaSeries y="value" lineWidth={0} />           // area only
+```
+
+By default the area fills down to the bottom of the pane. Set `base` to fill to a constant value instead (for example
+`0` for a chart with negative values).
+
+## Bands
+
+`y0` sets a per-point bottom edge, which turns the area into a band: a high / low range, a confidence interval, or the
+fill between two indicator lines.
+
+[See the Band example →](/examples/bands)
+
+## Stacked areas
+
+`<StackedAreaSeries ys={[...]}>` stacks several values per datum (bottom layer first). `offset="percent"` normalises
+every stack to 100%. Positive values stack upwards and negative values downwards. The `stack()` helper exposes the same
+computation for your own series.
+
+[See the stacked area example →](/examples/stacked-area)

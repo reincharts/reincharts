@@ -1,0 +1,15 @@
+{
+  "title": "@reincharts/annotations",
+  "pages": [
+    "---Components---",
+    "label",
+    "markers",
+    "reference-area",
+    "reference-dot",
+    "reference-line",
+    "watermark",
+    "---Reference---",
+    "functions",
+    "types"
+  ]
+}

@@ -1,0 +1,41 @@
+---
+title: Line
+description: Lines through one value per point, with straight, monotone or step curves.
+examples: /examples/line
+api: /api/series/line-series
+---
+
+A line chart shows how a value changes along a continuous x axis: time series, measurements, trends. Use it when the
+shape of the change matters more than individual values.
+
+<ComponentPreview name="line" />
+
+## Usage
+
+```tsx
+<LineSeries y="temperature" />
+<LineSeries y={(d) => d.temperature * 1.8 + 32} color="#f59e0b" width={1.5} />
+```
+
+`y` defaults to `"close"` and `color` to the theme's `line` color. Missing values (`undefined`, `NaN`) leave a gap
+unless `connectGaps` is set.
+
+## Curves, dashes and points
+
+`curve` is `"linear"` (default), `"monotone"` (a smooth spline that never overshoots), `"step"` / `"stepAfter"` or
+`"stepBefore"`. `dash` takes `"solid"`, `"dashed"`, `"dotted"`, `"longDash"` or a dash array. `points` draws a dot at
+every value (`"auto"`: only when bars are far enough apart).
+
+[See the curves & steps example →](/examples/curves)
+
+## Straight lines
+
+`<StraightLine>` draws a horizontal line at a value or a vertical line at an x value (a `Date`, a number or a category
+index). Horizontal lines can take part in autoscale. For labelled reference lines and areas see
+[Annotations](/docs/components/annotations).
+
+[See the straight lines example →](/examples/straight-lines)
+
+## Numeric x axes
+
+With `xMode="linear"` the same series draws classic x / y line charts. See [Data & x modes](/docs/concepts/data).

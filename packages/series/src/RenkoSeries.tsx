@@ -1,117 +1,97 @@
-import { ScaleContinuousNumeric } from "d3-scale";
-import * as React from "react";
-import { isDefined, getAxisCanvas, GenericChartComponent } from "@reincharts/core";
+import { accessor, withAlpha, type Accessor, type Theme } from "@reincharts/core";
+import { barLeft, barWidth, PathBatch, pixelSpan } from "./geometry";
+import { ohlcLegend } from "./ohlc";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface RenkoSeriesProps {
-    /** Whether to clip the series to chart area. */
-    readonly clip?: boolean;
-    /** Fill colors for Renko bricks (up, down, partial). */
-    readonly fill?: {
-        up: string;
-        down: string;
-        partial: string;
-    };
-    /** Stroke colors for Renko bricks (up, down). */
-    readonly stroke?: {
-        up: string;
-        down: string;
-    };
-    /** Data accessor function for Renko values. */
-    readonly yAccessor?: (data: any) => any;
-    /** Stroke width for Renko bricks. */
-    readonly strokeWidth?: number;
+/**
+ * A brick / box produced by the renko or line break transforms (one datum per brick):
+ * `{ date, open, close, fullyFormed? }`. A brick is "up" when close >= open. `fullyFormed: false`
+ * marks the last, still forming renko brick. Extra fields (high, low, volume, from, to...) are ignored.
+ */
+export interface BrickDatum {
+    readonly date?: Date | number;
+    readonly open: number;
+    readonly close: number;
+    readonly fullyFormed?: boolean;
 }
 
-export class RenkoSeries extends React.Component<RenkoSeriesProps> {
-    public static defaultProps = {
-        clip: true,
-        fill: {
-            up: "#26a675ff",
-            down: "#e93b3bff",
-            partial: "#4682B4",
-        },
-        stroke: {
-            up: "rgba(0,0,0,0)",
-            down: "rgba(0,0,0,0)",
-        },
-        yAccessor: (d: any) => ({ open: d.open, high: d.high, low: d.low, close: d.close }),
-        strokeWidth: 1,
-    };
+export interface RenkoSeriesProps<T = BrickDatum> extends SeriesProps {
+    /** Brick open accessor. Default "open". */
+    readonly open?: Accessor<T>;
+    /** Brick close accessor. Default "close". */
+    readonly close?: Accessor<T>;
+    /** Accessor of the "still forming" flag. Default "fullyFormed" (missing = formed). */
+    readonly formed?: Accessor<T, boolean | undefined>;
+    /** Up brick color. Defaults to theme.up. */
+    readonly upColor?: string;
+    /** Down brick color. Defaults to theme.down. */
+    readonly downColor?: string;
+    /** Color of a brick that is still forming (drawn hollow). Defaults to theme.neutral. */
+    readonly partialColor?: string;
+    /** Brick width as a fraction of the bar spacing. Default 0.9. */
+    readonly widthRatio?: number;
+    /** Fill opacity of bricks (their border stays opaque). Default 1. */
+    readonly fillOpacity?: number;
+}
 
-    public render() {
-        const { clip } = this.props;
-
-        return (
-            <GenericChartComponent
-                clip={clip}
-                canvasDraw={this.drawOnCanvas}
-                canvasToDraw={getAxisCanvas}
-                drawOn={["pan"]}
-            />
-        );
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const {
-            xAccessor,
-            xScale,
-            chartConfig: { yScale },
-            plotData,
-        } = moreProps;
-
-        const { strokeWidth = RenkoSeries.defaultProps.strokeWidth } = this.props;
-        const renko = this.getRenko(plotData, xScale, xAccessor, yScale);
-
-        renko.forEach((d) => {
-            const { fillStyle, strokeStyle } = d;
-            ctx.beginPath();
-
-            if (strokeStyle !== undefined) {
-                ctx.strokeStyle = strokeStyle;
-                ctx.lineWidth = strokeWidth;
+/** Renko bricks: fixed-size boxes stacked diagonally, one per datum of the renko transform. */
+export function RenkoSeries<T = BrickDatum>({
+    open = "open" as Accessor<T>,
+    close = "close" as Accessor<T>,
+    formed = "fullyFormed" as Accessor<T, boolean | undefined>,
+    upColor,
+    downColor,
+    partialColor,
+    widthRatio = 0.9,
+    fillOpacity = 1,
+    ...rest
+}: RenkoSeriesProps<T>) {
+    const o = accessor(open);
+    const c = accessor(close);
+    const isFormed = accessor(formed);
+    const colorOf = (d: T, i: number, theme: Theme) =>
+        isFormed(d, i) === false
+            ? (partialColor ?? theme.neutral)
+            : c(d, i) >= o(d, i)
+              ? (upColor ?? theme.up)
+              : (downColor ?? theme.down);
+    useSeries<T>({
+        ...rest,
+        values: (d, i) => [o(d, i), c(d, i)],
+        base: (d, i) => c(d, i),
+        color: colorOf,
+        legendValues: (d, i, { format, color }) => ohlcLegend([o(d, i), c(d, i)], format, color, ["O", "C"]),
+        draw(ctx, { data, start, end, x, y, barSpacing, theme }) {
+            const w = barWidth(barSpacing, widthRatio);
+            const fills = new PathBatch();
+            const borders = new PathBatch();
+            for (let i = start; i <= end; i++) {
+                const d = data[i];
+                const oo = o(d, i);
+                const cc = c(d, i);
+                if (!Number.isFinite(oo) || !Number.isFinite(cc)) {
+                    continue;
+                }
+                const color = colorOf(d, i, theme);
+                const left = barLeft(x(i), w);
+                const [top, height] = pixelSpan(y(oo), y(cc));
+                if (isFormed(d, i) !== false) {
+                    fills.get(fillOpacity < 1 ? withAlpha(color, fillOpacity) : color).rect(left, top, w, height);
+                }
+                if (w > 3) {
+                    borders.get(color).rect(left + 0.5, top + 0.5, w - 1, Math.max(0, height - 1));
+                }
             }
-            if (fillStyle !== undefined) {
-                ctx.fillStyle = fillStyle;
-            }
+            fills.fill(ctx);
+            borders.stroke(ctx, 1);
+        },
+    });
+    return null;
+}
 
-            ctx.rect(d.x, d.y, d.width, d.height);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.fill();
-        });
-    };
+export type LineBreakSeriesProps<T = BrickDatum> = RenkoSeriesProps<T>;
 
-    private readonly getRenko = (
-        plotData: any[],
-        xScale: ScaleContinuousNumeric<number, number>,
-        xAccessor: any,
-        yScale: ScaleContinuousNumeric<number, number>,
-    ) => {
-        const { fill, stroke, yAccessor = RenkoSeries.defaultProps.yAccessor } = this.props;
-
-        const width = xScale(xAccessor(plotData[plotData.length - 1])) - xScale(xAccessor(plotData[0]));
-
-        const candleWidth = width / (plotData.length - 1);
-
-        return plotData
-            .filter((d) => isDefined(yAccessor(d).close))
-            .map((d) => {
-                const ohlc = yAccessor(d);
-                const x = xScale(xAccessor(d)) - 0.5 * candleWidth;
-                const y = yScale(Math.max(ohlc.open, ohlc.close));
-                const height = Math.abs(yScale(ohlc.open) - yScale(ohlc.close));
-
-                const fillStyle = d.fullyFormed ? (ohlc.open <= ohlc.close ? fill?.up : fill?.down) : fill?.partial;
-                const strokeStyle = d.fullyFormed ? (ohlc.open <= ohlc.close ? stroke?.up : stroke?.down) : undefined;
-
-                return {
-                    fillStyle,
-                    height,
-                    strokeStyle,
-                    width: candleWidth,
-                    x,
-                    y,
-                };
-            });
-    };
+/** Line break (three line break) boxes: one box per datum of the line break transform. */
+export function LineBreakSeries<T = BrickDatum>({ widthRatio = 0.8, ...rest }: LineBreakSeriesProps<T>) {
+    return <RenkoSeries<T> {...rest} widthRatio={widthRatio} />;
 }

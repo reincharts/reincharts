@@ -1,0 +1,73 @@
+---
+title: Price scales
+description: Linear, log, percent and indexed scales, margins, multiple scales per pane and overlays.
+examples: /examples/scale-modes
+api: /api/core/types#pricescaleoptions
+---
+
+Every pane has one or more **price scales**, identified by a string id. Series use the `"right"` scale unless they set
+`scale`, and a `<YAxis scale="...">` shows a scale's labels. Configure scales per pane with `<Pane scales>`:
+
+```tsx
+<ChartCanvas data={bars}>
+  <Pane scales={{ right: { mode: "log" }, volume: { margins: { top: 0.8, bottom: 0 } } }}>
+    <CandlestickSeries /> {/* on the "right" scale (log) */}
+    <VolumeSeries scale="volume" /> {/* on its own scale, in the bottom 20% */}
+    <YAxis /> {/* labels of the "right" scale */}
+  </Pane>
+  <XAxis />
+</ChartCanvas>
+```
+
+<ComponentPreview name="concept-price-scales" height={380} />
+
+## Modes
+
+| Mode        | What it shows                                                         |
+| ----------- | --------------------------------------------------------------------- |
+| `"linear"`  | Raw values (default).                                                 |
+| `"log"`     | Logarithmic: equal percentage moves take equal space.                 |
+| `"percent"` | Change from the first visible bar, in %. Great for comparing symbols. |
+| `"indexed"` | Rebased to 100 at the first visible bar.                              |
+
+<ComponentPreview name="price-scale-modes" height={380} />
+
+## Autoscale, margins and manual scaling
+
+Scales fit the visible data automatically, leaving `margins` (fractions of the pane height, default 10% top and bottom).
+Dragging the price axis (or scrolling over it) scales it and turns autoscale off for that scale; double-clicking the
+axis turns it back on.
+
+While a scale autoscales, dragging the plot only pans in time, so the data can't be dragged out of view. Once the user
+has adjusted the price scale, dragging the plot pans vertically too. Set `yPan={false}` on a `<Pane>` to keep panning
+horizontal only.
+
+Fix the range with `domain: [min, max]`, or customize what autoscale considers with `extents` (per-bar values) or
+`extentsCalculator`. `invert` flips the scale.
+
+## Multiple scales
+
+Give series different scale ids and show each with its own axis. For example, an index on the
+left and two stocks on the right can share one pane.
+
+[See the multiple scales example →](/examples/multiple-scales)
+
+## Overlay scales
+
+A scale without an axis is an **overlay**. The classic use is volume at the bottom of the price pane: put it on its own
+scale and give that scale a large top margin, so it uses only the bottom fifth of the pane.
+
+[See the volume overlay example →](/examples/volume-overlay)
+
+## Category scales
+
+`categories: ["A", "B", "C"]` turns a scale into a band scale where value `i` is the i-th category, for horizontal bar
+charts (with `xMode="linear"` so values run along x). Pan, zoom and the crosshair keep working.
+
+[See the horizontal bars example →](/examples/horizontal-bars)
+
+## Labels
+
+Tick and axis labels use the scale's formatter: set `precision` for a fixed number of decimals or `format(value)` for
+anything else (currencies, units, compact numbers). `<YAxis tickFormat>` only changes the axis ticks. All scale options
+are listed in the [`PriceScaleOptions` reference](/api/core/types#pricescaleoptions).

@@ -1,0 +1,17 @@
+---
+title: "Measure"
+description: "Date ranges, value ranges and both at once."
+examples: /examples/drawing-tools/measure
+api: /api/interactive/constants#daterange
+---
+
+<ComponentPreview name="drawings-measure" height={460} />
+
+| Tool               | Type                | Shows                                      |
+| ------------------ | ------------------- | ------------------------------------------ |
+| Date range         | `dateRange`         | Number of bars and the duration            |
+| Value range        | `priceRange`        | Change between two values and the % change |
+| Date & value range | `dateAndPriceRange` | Both                                       |
+
+Each measurement takes two points and is colored by direction (up / down). They are regular drawings: keep them on
+the chart, or remove them when done. The type names come from the y value being called `price` in drawing points.

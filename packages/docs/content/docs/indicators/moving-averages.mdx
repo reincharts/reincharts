@@ -1,0 +1,28 @@
+---
+title: Moving averages
+description: SMA, EMA, WMA, TMA, HMA, VWMA and RMA lines.
+examples: /examples/indicators/moving-averages
+api: /api/indicators/moving-average
+---
+
+<ComponentPreview name="indicators-moving-averages" />
+
+## Usage
+
+```tsx
+<MovingAverage type="ema" period={20} />
+<MovingAverage type="sma" period={50} source="hlc3" color="#2962ff" />
+```
+
+| Type     | Name                           |
+| -------- | ------------------------------ |
+| `"sma"`  | Simple moving average          |
+| `"ema"`  | Exponential moving average     |
+| `"wma"`  | Weighted moving average        |
+| `"tma"`  | Triangular moving average      |
+| `"hma"`  | Hull moving average            |
+| `"vwma"` | Volume-weighted moving average |
+
+`source` is a price source (`"open"`, `"high"`, `"low"`, `"close"`, `"hl2"`, `"hlc3"`, `"ohlc4"`, `"hlcc4"`,
+`"volume"`), a field name or a function. The calculators `sma`, `ema`, `wma`, `tma`, `rma` (Wilder), `hma`, `vwma` and
+`movingAverage({ type })` return the raw values.

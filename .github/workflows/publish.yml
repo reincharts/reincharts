@@ -1,36 +1,43 @@
----
-name: NPM Publish
+name: Release
 
 on:
-  release:
-    types:
-      - published
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22.x'
-          registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build packages
-        run: npm run build
-      
-      - name: Publish to NPM
-        run: npm run publish
+          node-version: 22.x
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      # Opens a "Version Packages" PR from pending changesets; when that PR is merged, builds and publishes to npm.
+      - uses: changesets/action@v2
+        with:
+          version-script: pnpm changeset version
+          publish-script: pnpm release
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
+          # read by the .npmrc that setup-node writes for registry-url
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

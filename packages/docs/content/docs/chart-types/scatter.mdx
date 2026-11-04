@@ -1,0 +1,34 @@
+---
+title: Scatter & bubble
+description: Points with circle, square, triangle and other markers, sized and colored by value.
+examples: /examples/scatter
+api: /api/series/scatter-series
+---
+
+Scatter plots show the relationship between two numeric values, one point per item. Bubbles add a third value as
+the point size.
+
+<ComponentPreview name="scatter" />
+
+## Usage
+
+Scatter plots use `xMode="linear"`: x is read from `d.x` by default (or `xAccessor`) and placed on a continuous axis.
+Data doesn't need to be sorted.
+
+```tsx
+<ChartCanvas data={data} xMode="linear">
+  <Pane>
+    <ScatterSeries<Point> y="y" marker={(d) => shapes[d.group]} fill={(d, _i, theme) => theme.palette[d.group]} />
+  </Pane>
+</ChartCanvas>
+```
+
+`marker` is one of `"circle"`, `"square"`, `"diamond"`, `"triangle"`, `"triangleDown"`, `"cross"`, `"x"` or `"star"`,
+static or per point. Hovering picks the **nearest point** in 2D, so `<Tooltip mode="nearest">` shows exactly the
+point under the pointer. To draw the same markers in a custom series, use `drawMarker(ctx, shape, x, y, size, style)`.
+
+## Bubbles
+
+`<BubbleSeries r="size">` maps a value to the bubble **area**, between `minSize` and `maxSize` pixels.
+
+[See the Bubble example →](/examples/bubble)

@@ -1,157 +1,116 @@
-import { functor, head, getAxisCanvas, GenericChartComponent, plotDataLengthBarWidth } from "@reincharts/core";
-import { group } from "d3-array";
-import { ScaleContinuousNumeric, ScaleTime } from "d3-scale";
-import * as React from "react";
-import { drawOnCanvasHelper, identityStack } from "./StackedBarSeries";
+import { accessor, useChart, type Accessor, type Theme } from "@reincharts/core";
+import { useBars, type BarColor, type BarStyleProps } from "./bars";
+import type { SeriesProps } from "./useSeries";
 
-interface IBar {
-    readonly x: number;
-    readonly y: number;
-    readonly height: number;
-    readonly width: number;
-    readonly fillStyle: string;
-    readonly strokeStyle?: string;
+export interface BarSeriesProps<T = any> extends SeriesProps, BarStyleProps {
+    /** Value accessor (bar end). */
+    readonly y: Accessor<T, number | undefined>;
+    /** Per-bar start value (floating / range bars). Overrides `base`. */
+    readonly y0?: Accessor<T, number | undefined>;
+    /** Value bars grow from, or "bottom" for the bottom edge of the pane. Default 0. */
+    readonly base?: number | "bottom";
+    /** Bar color, static or per bar (receives the theme). Defaults to theme.line. */
+    readonly fill?: BarColor<T>;
 }
 
-export interface BarSeriesProps {
-    /** Function or number for the base of the bars. */
-    readonly baseAt?:
-        | number
-        | ((
-              xScale: ScaleContinuousNumeric<number, number> | ScaleTime<number, number>,
-              yScale: ScaleContinuousNumeric<number, number>,
-              d: [number, number],
-              moreProps: any,
-          ) => number);
-    /** Whether to clip the bars to the chart area. */
-    readonly clip?: boolean;
-    /** Fill color for the bars. */
-    readonly fillStyle?: string | ((data: any) => string);
-    /** Stroke color for the bar borders. */
-    readonly strokeStyle?: string | ((data: any) => string);
-    /** Width of the bar stroke. */
-    readonly strokeWidth?: number;
-    /** Swap X and Y scales. */
-    readonly swapScales?: boolean;
-    /** Width of each bar, or a function to determine width. Defaults to plotDataLengthBarWidth. */
-    readonly width?: number | ((props: { widthRatio: number }, moreProps: any) => number);
-    /** Ratio of bar width to available space. */
-    readonly widthRatio?: number;
-    readonly yAccessor: (data: any) => number | undefined;
+/** Resolves a `BarColor` (static or per bar) for a datum, falling back to `theme.line`. */
+export const resolveColor = <T,>(
+    fill: BarColor<T> | undefined,
+    d: T,
+    i: number,
+    theme: Theme,
+    fallback = theme.line,
+) => (fill === undefined ? fallback : typeof fill === "function" ? fill(d, i, theme) : fill);
+
+/** Vertical bars from a base value (histograms, column charts, MACD histograms...). */
+export function BarSeries<T = any>({ y, y0, base = 0, fill, ...rest }: BarSeriesProps<T>) {
+    useBars<T>({
+        ...rest,
+        layout: "single",
+        horizontal: false,
+        ys: [accessor(y)],
+        y0: accessor(y0),
+        base,
+        color: (_k, d, i, theme) => resolveColor(fill, d, i, theme),
+    });
+    return null;
+}
+
+export interface VolumeSeriesProps<T = any> extends SeriesProps, BarStyleProps {
+    /** Volume accessor. Default "volume". */
+    readonly y?: Accessor<T, number | undefined>;
+    /** Open accessor used for the up / down color. Default "open". */
+    readonly open?: Accessor<T>;
+    /** Close accessor used for the up / down color. Default "close". */
+    readonly close?: Accessor<T>;
+    /** Color of rising bars. Defaults to theme.volume.up. */
+    readonly upColor?: string;
+    /** Color of falling bars. Defaults to theme.volume.down. */
+    readonly downColor?: string;
 }
 
 /**
- * A `BarSeries` component.
+ * Volume histogram colored by candle direction. To overlay it in the price pane, give it its own scale
+ * and push it to the bottom: `<Pane scales={{ volume: { margins: { top: 0.8, bottom: 0 } } }}>` +
+ * `<VolumeSeries scale="volume" />`.
  */
-export class BarSeries extends React.Component<BarSeriesProps> {
-    public static defaultProps = {
-        baseAt: (xScale: ScaleContinuousNumeric<number, number>, yScale: ScaleContinuousNumeric<number, number>) =>
-            head(yScale.range()),
-        clip: true,
-        fillStyle: "rgba(70, 130, 180, 0.5)",
-        swapScales: false,
-        width: plotDataLengthBarWidth,
-        widthRatio: 0.8,
-        strokeWidth: 1,
-    };
+export function VolumeSeries<T = any>({
+    y = "volume" as Accessor<T, number | undefined>,
+    open = "open" as Accessor<T>,
+    close = "close" as Accessor<T>,
+    upColor,
+    downColor,
+    name = "Volume",
+    widthRatio = 0.8,
+    ...rest
+}: VolumeSeriesProps<T>) {
+    const o = accessor(open);
+    const c = accessor(close);
+    return (
+        <BarSeries<T>
+            {...rest}
+            name={name}
+            y={y}
+            widthRatio={widthRatio}
+            fill={(d, i, theme) =>
+                c(d, i) >= o(d, i) ? (upColor ?? theme.volume.up) : (downColor ?? theme.volume.down)
+            }
+        />
+    );
+}
 
-    public render() {
-        const { clip } = this.props;
+export interface ColumnsSeriesProps<T = any> extends SeriesProps, BarStyleProps {
+    /** Value accessor. Default "close". */
+    readonly y?: Accessor<T, number | undefined>;
+    /** Color when the value rose from the previous bar. Defaults to theme.up. */
+    readonly upColor?: string;
+    /** Color when the value fell from the previous bar. Defaults to theme.down. */
+    readonly downColor?: string;
+    /** Value columns grow from, or "bottom" (default) for the bottom of the pane. */
+    readonly base?: number | "bottom";
+}
 
-        return (
-            <GenericChartComponent
-                clip={clip}
-                canvasToDraw={getAxisCanvas}
-                canvasDraw={this.drawOnCanvas}
-                drawOn={["pan"]}
-            />
-        );
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        if (this.props.swapScales) {
-            const { xAccessor } = moreProps;
-
-            drawOnCanvasHelper(ctx, this.props, moreProps, xAccessor, identityStack);
-        } else {
-            const bars = this.getBars(moreProps);
-
-            // Use per-bar strokeStyle if provided
-            const { strokeWidth = BarSeries.defaultProps.strokeWidth } = this.props;
-            const nest = group(bars, (d: IBar) => d.fillStyle);
-            nest.forEach((values, key) => {
-                ctx.fillStyle = key;
-                values.forEach((d) => {
-                    if (d.width <= 1) {
-                        ctx.fillRect(d.x - 0.5, d.y, 1, d.height);
-                    } else {
-                        ctx.fillRect(d.x + 0.5, d.y + 0.5, d.width, d.height);
-                        if (d.strokeStyle !== undefined) {
-                            ctx.strokeStyle = d.strokeStyle;
-                            ctx.lineWidth = strokeWidth;
-                            ctx.strokeRect(d.x, d.y, d.width, d.height);
-                        }
-                    }
-                });
-            });
-        }
-    };
-
-    private readonly getBars = (moreProps: {
-        chartConfig: any;
-        xAccessor: (data: any) => number | Date;
-        xScale: ScaleContinuousNumeric<number, number> | ScaleTime<number, number>;
-        plotData: any[];
-    }) => {
-        const { baseAt, fillStyle, strokeStyle, width, yAccessor } = this.props;
-
-        const {
-            xScale,
-            xAccessor,
-            plotData,
-            chartConfig: { yScale },
-        } = moreProps;
-
-        const getFill = functor(fillStyle);
-        const getBase = functor(baseAt);
-        const getWidth = functor(width);
-        const getStroke = functor(strokeStyle);
-
-        const barWidth = getWidth(this.props, {
-            xScale,
-            xAccessor,
-            plotData,
-        });
-
-        const offset = 0.5 * barWidth;
-
-        return plotData
-            .map((d) => {
-                const yValue = yAccessor(d);
-                if (yValue === undefined) {
-                    return undefined;
-                }
-
-                const xValue = xAccessor(d);
-                const x = xScale(xValue) - offset;
-
-                let y = yScale(yValue);
-
-                let h = getBase(xScale, yScale, d) - yScale(yValue);
-                if (h < 0) {
-                    y = y + h;
-                    h = -h;
-                }
-
-                return {
-                    x,
-                    y: Math.round(y),
-                    height: Math.round(h),
-                    width: offset * 2,
-                    fillStyle: getFill(d),
-                    strokeStyle: getStroke(d),
-                };
-            })
-            .filter((d) => d !== undefined) as IBar[];
-    };
+/** "Columns" chart type: a column per bar up to the close, colored by the change from the previous close. */
+export function ColumnsSeries<T = any>({
+    y = "close" as Accessor<T, number | undefined>,
+    upColor,
+    downColor,
+    base = "bottom",
+    ...rest
+}: ColumnsSeriesProps<T>) {
+    const engine = useChart<T>();
+    const value = accessor(y);
+    return (
+        <BarSeries<T>
+            {...rest}
+            y={y}
+            base={base}
+            fill={(d, i, theme) => {
+                const prev = i > 0 ? value(engine.data[i - 1], i - 1) : undefined;
+                return prev === undefined || (value(d, i) ?? 0) >= prev
+                    ? (upColor ?? theme.up)
+                    : (downColor ?? theme.down);
+            }}
+        />
+    );
 }

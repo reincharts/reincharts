@@ -1,0 +1,36 @@
+---
+title: Crosshair
+description: The crosshair, its modes (normal, magnet, hidden) and axis labels.
+examples: /examples/crosshair-modes
+api: /api/coordinates/crosshair
+---
+
+<ComponentPreview name="crosshair-modes" />
+
+## Usage
+
+Place one `<Crosshair>` directly inside `<ChartCanvas>`: its vertical line spans every pane, the horizontal line and
+the price labels follow the hovered pane, and the time label sits on the x axis.
+
+```tsx
+import { Crosshair } from "@reincharts/coordinates";
+
+<ChartCanvas data={bars}>
+  <Pane>{/* ... */}</Pane>
+  <XAxis />
+  <Crosshair mode="magnet" />
+</ChartCanvas>;
+```
+
+## Modes
+
+| Mode       | Behavior                                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `"normal"` | Lines follow the pointer; x snaps to the hovered bar in index mode.                                                           |
+| `"magnet"` | The horizontal line snaps to the closest series value of the bar (e.g. the nearest line, or open/high/low/close of a candle). |
+| `"hidden"` | Nothing is drawn, but the crosshair state (legends, tooltips, sync) still updates.                                            |
+
+Turn individual parts off with `vertical`, `horizontal`, `xLabel` and `yLabel`, and format the labels with `formatX` /
+`formatY`. Charts that share a `syncId` show a synced vertical line ([Syncing charts](/docs/guides/syncing-charts)).
+
+The crosshair is drawn on the chart's "top" layer, so moving the pointer never redraws the series.

@@ -1,0 +1,37 @@
+---
+title: Axes & Grid
+description: The x axis, value axes and grid lines.
+examples: /examples/axes-grid
+api: /api/axes
+---
+
+<ComponentPreview name="axes-grid" />
+
+## XAxis
+
+`<XAxis>` draws the time / x axis along the bottom of the chart and reserves its height in the layout. Place it directly
+inside `<ChartCanvas>`: it is shared by all panes. Labels adapt to the data: calendar-aware levels for time data (years
+in bold, then months, days, hours...), nice numbers for numeric data, and the strings for categories.
+
+Dragging the axis zooms horizontally; double-clicking it resets the view.
+
+## YAxis
+
+`<YAxis>` shows one price scale of the enclosing pane, on the `right` (default) or `left`. It sizes itself to fit its
+labels unless `width` is set. Use several axes for several scales:
+
+```tsx
+<Pane>
+  <LineSeries y="signups" scale="left" />
+  <LineSeries y="sessions" />
+  <YAxis side="left" scale="left" />
+  <YAxis />
+</Pane>
+```
+
+Drag the axis (or scroll over it) to scale it; double-click to autoscale again.
+
+## Grid
+
+`<Grid>` draws lines aligned with the axis ticks of its pane, behind every series. Colors and which directions are drawn
+default to the theme (`theme.grid`).

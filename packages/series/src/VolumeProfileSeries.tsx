@@ -1,261 +1,204 @@
-import { ascending, descending, histogram as d3Histogram, max, merge, rollup, sum, zip } from "d3-array";
-import { scaleLinear } from "d3-scale";
-import * as React from "react";
 import {
-    accumulatingWindow,
-    functor,
-    head,
-    identity,
-    getAxisCanvas,
-    GenericChartComponent,
-    last,
+    accessor,
+    applyStroke,
+    horizontalLine,
+    isFiniteNumber,
+    withAlpha,
+    type Accessor,
+    type LineDash,
 } from "@reincharts/core";
+import { PathBatch } from "./geometry";
+import { useSeries, type SeriesProps } from "./useSeries";
 
-export interface VolumeProfileSeriesProps {
-    /** Function to extract absolute price change from data. */
-    readonly absoluteChange: (data: any) => number;
-    /** Number of bins to divide the price range into for volume distribution. */
-    readonly bins: number;
-    /** Whether to create separate volume profiles for each session. */
-    readonly bySession?: boolean;
-    /** Function to determine fill color based on volume type (up/down) and width. */
-    readonly fill?: (widthType: { type: "up" | "down"; width: number }) => string;
-    /** Maximum width of volume profile as percentage of chart area. */
-    readonly maxProfileWidthPercent: number;
-    /** Orientation of the volume profile bars. */
-    readonly orient?: "left" | "right";
-    /** Whether partial session data at start is acceptable. */
-    readonly partialStartOK?: boolean;
-    /** Whether partial session data at end is acceptable. */
-    readonly partialEndOK?: boolean;
-    /** Background color for session periods. */
-    readonly sessionBackground?: string;
-    /** Function to determine if a data point marks the start of a new session. */
-    readonly sessionStart: ({ d, i, plotData }: any) => boolean;
-    /** Whether to show background highlighting for sessions. */
-    readonly showSessionBackground?: boolean;
-    /** Function to extract price source value for volume distribution. */
-    readonly source: (d: number, i: number, data: ArrayLike<number>) => number;
-    /** Stroke color for volume profile bars. */
-    readonly stroke?: string;
-    /** Function to extract volume value from data. */
-    readonly volume: (data: any) => number;
+export interface VolumeProfileSeriesProps<T = any> extends Omit<SeriesProps, "legend" | "format"> {
+    /** Price each bar's whole volume is assigned to. When omitted, volume is spread evenly over each bar's low–high range. */
+    readonly price?: Accessor<T>;
+    /** High accessor (volume spreading). Default "high". */
+    readonly high?: Accessor<T>;
+    /** Low accessor (volume spreading). Default "low". */
+    readonly low?: Accessor<T>;
+    /** Volume accessor. Default "volume". */
+    readonly volume?: Accessor<T>;
+    /** Open accessor (bars with close >= open count as up volume). Default "open". */
+    readonly open?: Accessor<T>;
+    /** Close accessor. Default "close". */
+    readonly close?: Accessor<T>;
+    /** Number of price rows. Default 24. */
+    readonly bins?: number;
+    /** Edge of the pane (or session) the rows grow from. Default "right". */
+    readonly side?: "left" | "right";
+    /** Width of the longest row as a fraction of the pane (or session) width. Default 0.3. */
+    readonly maxWidth?: number;
+    /** Up volume color. Defaults to theme.up at 35% opacity. */
+    readonly upColor?: string;
+    /** Down volume color. Defaults to theme.down at 35% opacity. */
+    readonly downColor?: string;
+    /** Draw the point of control (row with the most volume) as a line. Default true. */
+    readonly showPoc?: boolean;
+    /** Point of control line color. Defaults to theme.textMuted. */
+    readonly pocColor?: string;
+    /** Point of control line dash. Default "dashed". */
+    readonly pocDash?: LineDash;
+    /** Starts a new profile at bar i (session profiles), e.g. `(d, i, prev) => d.date.getDate() !== prev.date.getDate()`. */
+    readonly sessionStart?: (d: T, index: number, prev: T) => boolean;
 }
 
-export class VolumeProfileSeries extends React.Component<VolumeProfileSeriesProps> {
-    public static defaultProps = {
-        absoluteChange: (d: any) => d.absoluteChange,
-        bins: 20,
-        bySession: false,
-        fill: ({ type }: { type: "up" | "down"; width: number }) =>
-            type === "up" ? "rgba(38, 166, 154, 0.5)" : "rgba(239, 83, 80, 0.5)",
-        maxProfileWidthPercent: 50,
-        orient: "left",
-        partialStartOK: true,
-        partialEndOK: true,
-        sessionBackground: "rgba(70, 130, 180, 0.3)",
-        sessionStart: ({ d, i, plotData }: any) => i > 0 && plotData[i - 1].date.getMonth() !== d.date.getMonth(),
-        showSessionBackground: false,
-        source: (d: any) => d.close,
-        stroke: "#FFFFFF",
-        volume: (d: any) => d.volume,
-    };
+export interface ProfileRow {
+    /** Price range of the row. */
+    readonly from: number;
+    readonly to: number;
+    readonly up: number;
+    readonly down: number;
+}
 
-    public render() {
-        return <GenericChartComponent canvasDraw={this.drawOnCanvas} canvasToDraw={getAxisCanvas} drawOn={["pan"]} />;
-    }
-
-    private readonly drawOnCanvas = (ctx: CanvasRenderingContext2D, moreProps: any) => {
-        const { xAccessor, width } = moreProps;
-
-        const { rects, sessionBg } = this.helper(this.props, moreProps, xAccessor, width);
-
-        this.drawOnCanvasContext(ctx, rects, sessionBg);
-    };
-
-    private readonly drawOnCanvasContext = (ctx: CanvasRenderingContext2D, rects: any[], sessionBg: any[]) => {
-        const { sessionBackground, showSessionBackground } = this.props;
-
-        if (showSessionBackground) {
-            if (sessionBackground !== undefined) {
-                ctx.fillStyle = sessionBackground;
-            }
-
-            sessionBg.forEach((each: any) => {
-                const { x, y, height, width } = each;
-
-                ctx.beginPath();
-                ctx.rect(x, y, width, height);
-                ctx.closePath();
-                ctx.fill();
-            });
+/**
+ * Buckets the volume of bars start..end into `bins` price rows. Each bar's volume is spread evenly
+ * over the rows its [low, high] price range overlaps (exported for tests and custom drawing).
+ */
+export const volumeProfile = <T,>(
+    data: readonly T[],
+    start: number,
+    end: number,
+    bins: number,
+    range: (d: T, i: number) => readonly [number, number],
+    volume: (d: T, i: number) => number,
+    isUp: (d: T, i: number) => boolean,
+): ProfileRow[] => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = start; i <= end; i++) {
+        const [lo, hi] = range(data[i], i);
+        if (isFiniteNumber(lo) && isFiniteNumber(hi)) {
+            min = Math.min(min, lo);
+            max = Math.max(max, hi);
         }
+    }
+    if (!(min <= max) || bins < 1) {
+        return [];
+    }
+    const step = (max - min) / bins || 1;
+    const rows = Array.from({ length: bins }, (_, k) => ({
+        from: min + k * step,
+        to: min + (k + 1) * step,
+        up: 0,
+        down: 0,
+    }));
+    const rowOf = (p: number) => Math.max(0, Math.min(bins - 1, Math.floor((p - min) / step)));
+    for (let i = start; i <= end; i++) {
+        const [lo, hi] = range(data[i], i);
+        const v = volume(data[i], i);
+        if (!isFiniteNumber(lo) || !isFiniteNumber(hi) || !isFiniteNumber(v)) {
+            continue;
+        }
+        const up = isUp(data[i], i);
+        const a = rowOf(lo);
+        const b = rowOf(hi);
+        for (let k = a; k <= b; k++) {
+            // share proportional to the overlap of [lo, hi] with the row (whole volume for a single price)
+            const overlap =
+                hi > lo ? (Math.min(hi, rows[k].to) - Math.max(lo, rows[k].from)) / (hi - lo) : 1 / (b - a + 1);
+            const share = v * Math.max(0, overlap);
+            if (up) {
+                rows[k].up += share;
+            } else {
+                rows[k].down += share;
+            }
+        }
+    }
+    return rows;
+};
 
-        rects.forEach((each: any) => {
-            const { x, y, height, w1, w2, stroke1, stroke2, fill1, fill2 } = each;
-
-            if (w1 > 0) {
-                ctx.fillStyle = fill1;
-                if (stroke1 !== "none") {
-                    ctx.strokeStyle = stroke1;
-                }
-
-                ctx.beginPath();
-                ctx.rect(x, y, w1, height);
-                ctx.closePath();
-                ctx.fill();
-
-                if (stroke1 !== "none") {
-                    ctx.stroke();
+/** Volume profile: a horizontal histogram of traded volume by price over the visible bars (or per session), split up / down. */
+export function VolumeProfileSeries<T = any>({
+    price,
+    high = "high" as Accessor<T>,
+    low = "low" as Accessor<T>,
+    volume = "volume" as Accessor<T>,
+    open = "open" as Accessor<T>,
+    close = "close" as Accessor<T>,
+    bins = 24,
+    side = "right",
+    maxWidth = 0.3,
+    upColor,
+    downColor,
+    showPoc = true,
+    pocColor,
+    pocDash = "dashed",
+    sessionStart,
+    zIndex = -1,
+    ...rest
+}: VolumeProfileSeriesProps<T>) {
+    const p = accessor(price);
+    const h = accessor(high);
+    const l = accessor(low);
+    const range = (d: T, i: number): [number, number] => (p ? [p(d, i), p(d, i)] : [l(d, i), h(d, i)]);
+    const v = accessor(volume);
+    const o = accessor(open);
+    const c = accessor(close);
+    const isUp = (d: T, i: number) => c(d, i) >= o(d, i);
+    useSeries<T>({
+        ...rest,
+        zIndex,
+        legend: false,
+        lastValue: false,
+        autoscale: false,
+        values: () => undefined,
+        color: (_d, _i, theme) => theme.neutral,
+        draw(ctx, { data, start, end, x, y, barSpacing, theme, pane }) {
+            const plotWidth = pane?.width ?? 0;
+            const sessions: [number, number][] = [];
+            let from = Math.max(0, start);
+            for (let i = from + 1; i <= end && sessionStart; i++) {
+                if (sessionStart(data[i], i, data[i - 1])) {
+                    sessions.push([from, i - 1]);
+                    from = i;
                 }
             }
-
-            if (w2 > 0) {
-                ctx.fillStyle = fill2;
-                if (stroke2 !== "none") {
-                    ctx.strokeStyle = stroke2;
+            if (from <= end) {
+                sessions.push([from, end]);
+            }
+            const fills = new PathBatch();
+            const pocs: [number, number, number][] = [];
+            const up = upColor ?? withAlpha(theme.up, 0.35);
+            const down = downColor ?? withAlpha(theme.down, 0.35);
+            for (const [a, b] of sessions) {
+                const rows = volumeProfile(data, a, b, bins, range, v, isUp);
+                const most = rows.reduce((m, r) => Math.max(m, r.up + r.down), 0);
+                if (!most) {
+                    continue;
                 }
-
-                ctx.beginPath();
-                ctx.rect(x + w1, y, w2, height);
-                ctx.closePath();
-                ctx.fill();
-
-                if (stroke2 !== "none") {
-                    ctx.stroke();
+                const left = sessionStart ? Math.max(0, x(a) - barSpacing / 2) : 0;
+                const right = sessionStart ? Math.min(plotWidth, x(b) + barSpacing / 2) : plotWidth;
+                const scale = ((right - left) * maxWidth) / most;
+                const dir = side === "right" ? -1 : 1;
+                const edge = side === "right" ? right : left;
+                let poc = rows[0];
+                for (const row of rows) {
+                    if (row.up + row.down > poc.up + poc.down) {
+                        poc = row;
+                    }
+                    const y0 = Math.round(y(row.to));
+                    const y1 = Math.round(y(row.from));
+                    const h = Math.max(1, y1 - y0 - 1);
+                    const wu = Math.round(row.up * scale);
+                    const wd = Math.round(row.down * scale);
+                    if (wu > 0) {
+                        fills.get(up).rect(dir > 0 ? edge : edge - wu, y0, wu, h);
+                    }
+                    if (wd > 0) {
+                        fills.get(down).rect(dir > 0 ? edge + wu : edge - wu - wd, y0, wd, h);
+                    }
+                }
+                pocs.push([y((poc.from + poc.to) / 2), left, right]);
+            }
+            fills.fill(ctx);
+            if (showPoc) {
+                applyStroke(ctx, { color: pocColor ?? theme.textMuted, width: 1, dash: pocDash });
+                for (const [py, l, r] of pocs) {
+                    horizontalLine(ctx, py, l, r);
                 }
             }
-        });
-    };
-
-    private readonly helper = (props: VolumeProfileSeriesProps, moreProps: any, xAccessor: any, width: number) => {
-        const {
-            xScale: realXScale,
-            chartConfig: { yScale },
-            plotData,
-        } = moreProps;
-
-        const {
-            sessionStart,
-            bySession,
-            partialStartOK,
-            partialEndOK,
-            bins,
-            maxProfileWidthPercent,
-            source,
-            volume,
-            absoluteChange,
-            orient,
-            fill,
-            stroke,
-        } = props;
-
-        const sessionBuilder = accumulatingWindow()
-            .discardTillStart(!partialStartOK)
-            .discardTillEnd(!partialEndOK)
-            .accumulateTill((d: any, i: any) => {
-                return sessionStart({ d, i, ...moreProps });
-            })
-            .accumulator(identity);
-
-        const dx = plotData.length > 1 ? realXScale(xAccessor(plotData[1])) - realXScale(xAccessor(head(plotData))) : 0;
-
-        const sessions = bySession ? sessionBuilder(plotData) : [plotData];
-
-        const allRects = sessions.map((session: any) => {
-            const begin = bySession ? realXScale(xAccessor(head(session))) : 0;
-            const finish = bySession ? realXScale(xAccessor(last(session))) : width;
-            const sessionWidth = finish - begin + dx;
-
-            const histogram2 = d3Histogram().value(source).thresholds(bins);
-
-            const rolledup = (data: any[]) => {
-                const sortFunction = orient === "right" ? descending : ascending;
-
-                const sortedData = data.sort((a, b) => sortFunction(a.direction, b.direction));
-
-                return rollup(
-                    sortedData,
-                    (leaves) => sum<any>(leaves, (d) => d.volume),
-                    (d) => d.direction,
-                );
-            };
-
-            const values = histogram2(session);
-
-            const volumeInBins = values
-                .map((arr) =>
-                    arr.map((d) => {
-                        return absoluteChange(d) > 0
-                            ? { direction: "up", volume: volume(d) }
-                            : { direction: "down", volume: volume(d) };
-                    }),
-                )
-                .map((arr) => Array.from(rolledup(arr)));
-
-            const volumeValues = volumeInBins.map((each) => sum(each.map((d) => d[1])));
-
-            const base = (xScaleD: any) => head(xScaleD.range());
-
-            const [start, end] =
-                orient === "right"
-                    ? [begin, begin + (sessionWidth * maxProfileWidthPercent) / 100]
-                    : [finish, finish - (sessionWidth * maxProfileWidthPercent) / 100];
-
-            const xScale = scaleLinear()
-                .domain([0, max(volumeValues)!])
-                .range([start, end]);
-
-            const totalVolumes = volumeInBins.map((volumes) => {
-                const totalVolume = sum<any>(volumes, (d) => d[1]);
-                const totalVolumeX = xScale(totalVolume);
-                const widthLocal = base(xScale) - totalVolumeX;
-                const x = widthLocal < 0 ? totalVolumeX + widthLocal : totalVolumeX;
-
-                const ws = volumes.map((d) => {
-                    return {
-                        type: d[0],
-                        width: (d[1] * Math.abs(widthLocal)) / totalVolume,
-                    };
-                });
-
-                return { x, ws, totalVolumeX };
-            });
-
-            // @ts-ignore
-            const rects = zip(values, totalVolumes)
-                // @ts-ignore
-                .map(([d, { x, ws }]) => {
-                    const w1 = ws[0] || { type: "up", width: 0 };
-                    const w2 = ws[1] || { type: "down", width: 0 };
-
-                    return {
-                        y: yScale(d.x1),
-                        height: yScale(d.x1) - yScale(d.x0),
-                        x,
-                        width,
-                        w1: w1.width,
-                        w2: w2.width,
-                        stroke1: functor(stroke)(w1),
-                        stroke2: functor(stroke)(w2),
-                        fill1: functor(fill)(w1),
-                        fill2: functor(fill)(w2),
-                    };
-                });
-
-            const sessionBg = {
-                x: begin,
-                y: last(rects).y,
-                height: head(rects).y - last(rects).y + head(rects).height,
-                width: sessionWidth,
-            };
-
-            return { rects, sessionBg };
-        });
-
-        return {
-            rects: merge<any>(allRects.map((d: any) => d.rects)),
-            sessionBg: allRects.map((d: any) => d.sessionBg),
-        };
-    };
+        },
+    });
+    return null;
 }

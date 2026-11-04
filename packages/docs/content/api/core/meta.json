@@ -1,0 +1,24 @@
+{
+  "title": "@reincharts/core",
+  "pages": [
+    "---Components---",
+    "chart-canvas",
+    "chart-overlay",
+    "pane",
+    "---Hooks---",
+    "use-chart",
+    "use-chart-event",
+    "use-chart-state",
+    "use-hit-target",
+    "use-pane-id",
+    "use-renderable",
+    "---Classes---",
+    "chart-engine",
+    "price-scale",
+    "time-formatter",
+    "---Reference---",
+    "functions",
+    "constants",
+    "types"
+  ]
+}

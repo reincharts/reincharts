@@ -1,0 +1,17 @@
+---
+title: "Channels & pitchfork"
+description: "Parallel channels, linear regression trend and Andrews' pitchfork."
+examples: /examples/financial-drawing-tools/channels
+api: /api/interactive/constants#parallelchannel
+---
+
+<ComponentPreview name="drawings-channels" height={460} />
+
+| Tool             | Type                | Points | Notes                                                                 |
+| ---------------- | ------------------- | ------ | --------------------------------------------------------------------- |
+| Parallel channel | `parallelChannel`   | 3      | Two points for the base line, the third sets the width; optional fill |
+| Regression trend | `regressionChannel` | 2      | Linear regression of the closes ± `deviation` std devs                |
+| Pitchfork        | `pitchfork`         | 3      | Andrews' pitchfork: pivot, then the two reaction points               |
+
+The regression trend reads the bar value from `<Drawings source>` (default `close`). Hold `Shift` while drawing to
+snap to 45° steps. Plain trend lines, rays and horizontal lines are under [Lines](/docs/components/drawing-tools/lines).

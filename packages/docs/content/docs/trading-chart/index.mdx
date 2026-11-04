@@ -1,0 +1,119 @@
+---
+title: "TradingChart"
+description: "A complete, batteries-included trading chart in one component."
+examples: /examples/trading-chart
+api: /api/widget/trading-chart
+---
+
+<ComponentPreview name="widget" height={600} />
+
+`<TradingChart>` (`@reincharts/widget`) is the most complete thing you can build with Reincharts: every package
+assembled into a full trading terminal with a top toolbar, drawing toolbar, legends with controls, dialogs, context
+menu, object tree, range presets and scale toggles. If you know the TradingView chart, it will feel familiar, and it is
+free, including multi-chart layouts with sync and bar replay.
+
+Use it when you want a finished trading UI. When you need something smaller or different, compose your own chart from
+the same components.
+
+```tsx
+import { TradingChart } from "@reincharts/widget";
+import "@reincharts/widget/styles.css";
+
+<div style={{ height: 600 }}>
+  <TradingChart datafeed={feed} defaultSymbol="AAPL" defaultIndicators={["ema", "rsi"]} theme="dark" />
+</div>;
+```
+
+Without `height` the widget fills its parent, so give the parent a size.
+
+## What's included
+
+- **Top toolbar:** symbol search, favorite intervals, chart type, indicators dialog, compare symbols, layouts, bar
+  replay, undo / redo, object tree, settings, theme toggle, fullscreen and snapshot (a PNG of the whole layout).
+- **Drawing toolbar:** every [drawing tool](/docs/components/drawing-tools), freehand brush and highlighter included,
+  with magnet, keep drawing, lock, hide and remove.
+- **Legends** with hide / settings / remove buttons on every series and indicator. On narrow charts they switch to the
+  [compact legend](/docs/components/legend#compact-mode).
+- **Indicators dialog:** searchable by name, grouped by category, with the indicators already on the chart listed
+  first under **On chart** (hide, settings and remove buttons). See [Indicators](/docs/trading-chart/indicators).
+- **Compare:** overlay other symbols of the datafeed on the price pane; adding one switches the price scale to percent.
+- **Multi-chart layouts and bar replay:** see [Layouts & replay](/docs/trading-chart/layouts).
+- **Object tree:** a side panel listing everything on the active chart pane by pane (main series, volume, compare
+  symbols, indicators and drawings) with hide, settings and remove buttons. Pass `objectTree="open"` to show it
+  initially.
+- **Settings dialog:** crosshair mode, time zone, volume, watermark, legend, grid lines and the last price line. The
+  choices are saved in `state.settings`.
+- **Context menu** (right-click): view, price, indicator, drawing and scale mode actions, plus shortcuts to the
+  object tree and the settings.
+- **Bottom bar:** range presets (`1D`, `5D`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `All`), the time zone, and
+  **%** (percent), **log** and **auto** scale toggles.
+- **Chart interaction:** everything from [Interaction](/docs/concepts/interaction): pan, zoom, scale the price axis
+  (dragging then pans vertically too), double-click the axis to autoscale again, resize panes by dragging separators.
+
+## Data mode or datafeed mode
+
+**Data mode:** pass your bars. `symbol` and `resolution` are labels; everything else (indicators, drawings, chart
+types, replay, layouts) works the same.
+
+[See the your own data example →](/examples/trading-chart/your-data)
+
+```tsx
+<TradingChart data={bars} symbol="MSFT" resolution="1D" />
+```
+
+**Datafeed mode:** pass a [`Datafeed`](/docs/datafeed). The widget loads history, scrolls back in time page by page,
+streams realtime bars, searches symbols and loads compare symbols through it.
+
+```tsx
+<TradingChart datafeed={feed} defaultSymbol="AAPL" defaultResolution="15" resolutions={["1", "5", "15", "60", "1D"]} />
+```
+
+Symbol, resolution, chart type, indicators and layout are each available **uncontrolled** (`defaultSymbol`,
+`defaultResolution`, `defaultChartType`, `defaultIndicators`...) or **controlled** (`symbol` + `onSymbolChange`,
+`resolution` + `onResolutionChange`...).
+
+## Chart types
+
+`defaultChartType` / `chartType` take one of the ids below (also exported as `CHART_TYPE_IDS`):
+
+| Id              | Chart type     | Id               | Chart type     |
+| --------------- | -------------- | ---------------- | -------------- |
+| `candles`       | Candles        | `area`           | Area           |
+| `hollowCandles` | Hollow candles | `hlcArea`        | HLC area       |
+| `bars`          | Bars           | `baseline`       | Baseline       |
+| `heikinAshi`    | Heikin Ashi    | `renko`          | Renko          |
+| `columns`       | Columns        | `lineBreak`      | Line break     |
+| `line`          | Line           | `kagi`           | Kagi           |
+| `stepLine`      | Step line      | `pointAndFigure` | Point & figure |
+
+## Feature toggles
+
+Every part of the UI can be turned off: `toolbar`, `drawingToolbar`, `legend`, `volume`, `watermark`, `grid`,
+`bottomBar`, `contextMenu`, `objectTree` (or `"open"`), `replay`, `compare`; plus `crosshair` (`"normal"`, `"magnet"`,
+`"hidden"`) and `timeZone`.
+
+[See the minimal ui example →](/examples/trading-chart/minimal)
+
+## Imperative API
+
+The ref exposes `save()`, `load(state)`, `addIndicator(idOrDefinition, options)`, `removeIndicator(id)`,
+`screenshot()`, `resetView()` and the active chart's `engine`. See [State, save & load](/docs/trading-chart/state) and
+the [API reference](/api/widget/trading-chart).
+
+## Building blocks
+
+`<TradingChart>` is built from the same public components documented on this site. When you need a layout it doesn't
+offer, compose your own from [`ChartCanvas`](/docs/concepts/chart-canvas), [series](/docs/chart-types),
+[indicators](/docs/indicators), [drawings](/docs/components/drawing-tools) and [legends](/docs/components/legend).
+The widget also exports the pieces it adds on top:
+
+| Export                                                | Purpose                                                               |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| `<MainSeries type name>`                              | The series of a chart type id (candles, renko, kagi...).              |
+| `CHART_TYPES`, `chartTypeInfo`, `chartData`           | Chart type labels and groups, and the bars a type draws (transforms). |
+| `RANGE_PRESETS`, `applyPreset`, `presetStart`         | The bottom bar's range buttons, for any `ChartEngine`.                |
+| `reduceState`, `defaultState`, `normalizeState`       | The pure state reducer and helpers behind every interaction.          |
+| `LAYOUTS`, `layoutCount`, `SCALE_MODES`, `PRICE_PANE` | Valid layout and scale mode ids, and the price pane id.               |
+| `<WidgetIcon name>`                                   | The widget's icon set (every chart type id is also an icon name).     |
+
+[See the chart type switcher example →](/examples/trading-chart/main-series)

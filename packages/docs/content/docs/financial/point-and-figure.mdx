@@ -1,0 +1,24 @@
+---
+title: Point & Figure
+description: Columns of X and O boxes.
+examples: /examples/point-and-figure
+api: /api/series/point-and-figure-series
+---
+
+<ComponentPreview name="point-and-figure" />
+
+## Usage
+
+`pointAndFigure()` from `@reincharts/indicators` builds columns of X (rising) and O (falling) boxes. A new column starts
+when the price reverses by `reversal` boxes (3 by default).
+
+```tsx
+import { PointAndFigureSeries } from "@reincharts/series";
+import { pointAndFigure } from "@reincharts/indicators";
+
+const columns = useMemo(() => pointAndFigure(bars, { boxSize: 0.5, reversal: 3 }), [bars]);
+
+<ChartCanvas data={columns}>
+  <PointAndFigureSeries />
+</ChartCanvas>;
+```

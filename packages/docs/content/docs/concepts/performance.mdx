@@ -1,0 +1,36 @@
+---
+title: Performance
+description: How Reincharts stays fast, and how to keep your own components fast.
+examples: /examples/large-dataset
+api: /api/core/chart-engine
+---
+
+## How the engine renders
+
+- **One render loop.** All changes mark a layer dirty; one `requestAnimationFrame` redraws what is dirty.
+- **Two layers.** The _scene_ canvas holds the grid, series, axes and drawings. The _top_ canvas holds the crosshair and
+  hover state, so moving the pointer never redraws the scene.
+- **Only visible bars.** The visible slice is found by binary search; series iterate `start..end` only.
+- **Per-pixel aggregation.** When several points share a pixel, line and area series keep only the first, lowest,
+  highest and last point of each pixel column, and candles, OHLC and bars draw one aggregated bar per column. The
+  picture is the same as drawing every point, but the cost depends on the chart width, not on the data size.
+- **Level-of-detail index.** Large series (10k+ points, `LOD_MIN_LENGTH`) get a one-time index of 32-point blocks
+  (`LOD_BLOCK`: min, max, first, last), cached per data array. Zoomed far out, drawing and autoscale read blocks
+  instead of points, so 200k points pan at 60 fps.
+- **Batched paths.** Built-in series batch all shapes of one color into a single `Path2D` (two fills for a whole
+  candlestick chart).
+- **No React per frame.** Pan, zoom and crosshair moves don't re-render React components. Hooks like `useChartState`
+  re-render only when their selected value changes.
+- **Device pixel ratio aware.** Canvases are sized in physical pixels and lines are snapped for crisp 1px strokes.
+
+## Tips
+
+- Keep `data` referentially stable: memoize derived arrays (`useMemo`) so the engine doesn't re-map x values.
+- Memoize custom themes (`useMemo(() => createTheme(...), [])`).
+- In custom renderables, iterate only `scope.start..scope.end`, avoid allocating per bar, and use the `"top"` layer for
+  anything that follows the pointer.
+- Custom series can reuse the same machinery from `@reincharts/series`: `linePoints` (per-pixel aggregation),
+  `getLod` / `lodExtent` (block index and exact range min / max), `drawOhlcColumns` / `ohlcExtent` (OHLC data) and
+  `PathBatch` (one path per color). [`useSeries`](/docs/guides/custom-series#useseries) uses the block index for
+  autoscale automatically.
+- For datasets in the millions, also pre-aggregate on the server and load detail on zoom.

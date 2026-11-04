@@ -1,0 +1,49 @@
+---
+title: Annotations
+description: Markers, labels, watermarks, reference lines, areas and dots.
+examples: /examples/annotated-line
+api: /api/annotations
+---
+
+Annotations explain the data: highlight a period, mark a target, call out an event. They are components placed inside
+a `<Pane>` and positioned in data coordinates, so they follow the chart as you pan and zoom.
+
+<ComponentPreview name="annotated-line" height={400} />
+
+## Reference lines, areas and dots
+
+Horizontal or vertical `<ReferenceLine>`s, shaded `<ReferenceArea>`s (any of `x1`, `x2`, `y1`, `y2`; omitted edges
+extend to the plot edge) and `<ReferenceDot>`s, all with optional labels.
+
+```tsx
+<ReferenceArea x1={launchStart} x2={launchEnd} label="Launch campaign" />
+<ReferenceLine y={10} label="Goal · 10k" color="#10b981" />
+<ReferenceDot x={peak.date} y={peak.value} label="Peak" />
+```
+
+## Markers
+
+`<Markers>` draws arrows, shapes, flags, custom SVG paths and text on points. Either select chart data with `when`, or
+pass explicit items with `data`:
+
+```tsx
+// on chart data
+<Markers when={(d) => d.signal === "buy"} position="below" text="Buy" />
+
+// explicit markers
+<Markers data={[{ x: new Date(2026, 4, 3), position: "above", shape: "flag", text: "Release" }]} />
+```
+
+`position` is `"above"` / `"below"` the point, `"inBar"` or `"atPrice"`. `onClick` makes markers interactive.
+
+## Labels and watermarks
+
+`<Label>` writes text (or an SVG path) at a data position, or at pixel coordinates with `units="pixel"` (negative values
+count from the right / bottom). `<Watermark text="Q3 2026" subtitle="Preliminary">` draws big faded text behind the series.
+
+## Custom annotations
+
+The helpers behind these components are exported for your own [renderables](/docs/guides/custom-series): `pixelX`,
+`logicalOf` and `indexOf` map a data x value (a `Date`, a number or a category) to pixels, a logical position or the
+nearest data index, `fromEdge` resolves negative pixel offsets, and `svgPath` / `addShape` draw SVG paths and marker
+shapes.

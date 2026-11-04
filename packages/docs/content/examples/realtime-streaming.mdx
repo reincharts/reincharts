@@ -1,0 +1,12 @@
+---
+title: "Realtime streaming"
+description: "Server metrics appended four times a second."
+docs: /docs/concepts/data
+api: /api/core/chart-canvas
+---
+
+<ComponentPreview name="realtime-line" height={440} />
+
+## How it works
+
+Appending to the `data` array keeps the current view; while the newest point is on screen the chart scrolls with it. Pan back in time and it stays put.

@@ -1,0 +1,26 @@
+---
+title: "Fibonacci & Gann"
+description: "Fib retracement, trend-based fib extension and Gann fan."
+examples: /examples/financial-drawing-tools/fibonacci
+api: /api/interactive/constants#fibretracement
+---
+
+<ComponentPreview name="drawings-fib" height={460} />
+
+| Tool                      | Type             | Points |
+| ------------------------- | ---------------- | ------ |
+| Fib retracement           | `fibRetracement` | 2      |
+| Trend-based fib extension | `fibExtension`   | 3      |
+| Gann fan                  | `gannFan`        | 2      |
+
+Levels are part of the drawing style: `style.levels` is a list of `{ value, color?, visible? }`, so each drawing can
+have its own levels. `fillOpacity` controls the per-level fills (0 disables them) and `showLabels` the level labels.
+The defaults are exported as `FIB_LEVELS` and `GANN_LEVELS`.
+
+```ts
+drawings.add({
+  type: "fibRetracement",
+  points: [a, b],
+  style: { levels: [{ value: 0 }, { value: 0.382 }, { value: 0.5 }, { value: 0.618, color: "#f59e0b" }, { value: 1 }] },
+});
+```

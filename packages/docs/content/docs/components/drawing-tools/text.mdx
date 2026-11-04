@@ -1,0 +1,17 @@
+---
+title: "Text & callouts"
+description: "Text labels and callouts that point at a value."
+examples: /examples/drawing-tools/text
+api: /api/interactive/constants#texttool
+---
+
+<ComponentPreview name="drawings-text" height={460} />
+
+| Tool    | Type      | Points | Notes                                   |
+| ------- | --------- | ------ | --------------------------------------- |
+| Text    | `text`    | 1      | Double-click to edit inline             |
+| Callout | `callout` | 2      | The point it targets, then the text box |
+
+Text is stored in `style.text`, with `fontSize`, `bold` and `textColor`. Both tools open an inline editor after they
+are placed and on double-click (`Enter` commits, `Shift` + `Enter` adds a line, `Esc` cancels). For fixed,
+non-editable annotations see [Annotations](/docs/components/annotations).

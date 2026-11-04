@@ -1,0 +1,36 @@
+---
+title: Horizontal bars
+description: Bars along a category y axis, with zoom and pan.
+examples: /examples/horizontal-bars
+api: /api/series/horizontal-bar-series
+---
+
+Horizontal bars put the categories on the y axis, which leaves room for long labels and suits rankings and
+progress charts.
+
+<ComponentPreview name="horizontal-bar" />
+
+## Usage
+
+Horizontal bars swap the axes: the values run along a continuous x axis and the categories are a **category price
+scale**. Use `xMode="linear"` and give the pane's scale the category labels; datum `i` is drawn in band `i`.
+
+```tsx
+<ChartCanvas data={data} xMode="linear">
+  <Pane scales={{ right: { categories: data.map((d) => d.country) } }}>
+    <HorizontalBarSeries x="gdp" radius={4} />
+    <YAxis />
+  </Pane>
+  <XAxis />
+</ChartCanvas>
+```
+
+Pan and zoom work along the value axis, and the tooltip picks the bar under the pointer. `x0` makes floating bars
+(e.g. a Gantt chart).
+
+## Grouped and stacked
+
+`<GroupedHorizontalBarSeries>` and `<StackedHorizontalBarSeries>` take the same `ys` / `colors` / `names` props as
+their vertical versions.
+
+[See the stacked horizontal bars example →](/examples/stacked-horizontal-bars)

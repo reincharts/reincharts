@@ -1,0 +1,83 @@
+---
+title: Data & x modes
+description: How data maps to the x axis - evenly spaced slots or a continuous scale, with time, numeric or category values.
+examples: /examples/numeric-axis
+api: /api/core/chart-canvas
+---
+
+`<ChartCanvas data>` takes an array of any objects. The x value of each item is read by `xAccessor`, which defaults to
+`d.date ?? d.time ?? d.x ?? index`. Series read their own values with accessors (`y="close"`, `y={(d) => d.price}`).
+
+## x modes
+
+### `xMode="index"` (default)
+
+Every item gets an evenly spaced **slot**, whatever its x value. This is how trading charts work: weekends, holidays and
+overnight gaps disappear, and bars are always the same distance apart. Panning and zooming change the bar spacing.
+
+### `xMode="linear"`
+
+x values are placed on a **continuous** numeric (or time) scale, like a classic line chart. Use it for scientific data,
+irregular samples or time series where gaps should stay visible. Sorted data is windowed with a binary search; unsorted
+data (a scatter plot) is drawn whole.
+
+Business-hours readings (9:00–17:00, weekdays) in both modes: `"index"` drops the nights and weekends, `"linear"` keeps
+them as gaps.
+
+```tsx
+<ChartCanvas data={readings} xMode={mode} initialView="fit" resetKey={mode}>
+  <LineSeries y="value" points />
+  <YAxis />
+  <XAxis />
+</ChartCanvas>
+```
+
+<ComponentPreview name="concept-x-modes" height={360} />
+
+`resetKey` resets the view when the mode changes.
+
+## x types
+
+The x type is detected from the first item, or forced with `xType`:
+
+| x value  | `xType`      | Axis labels                                                   |
+| -------- | ------------ | ------------------------------------------------------------- |
+| `Date`   | `"time"`     | Calendar aware: years, months, days, hours... in `timeZone`   |
+| `number` | `"number"`   | Nice numeric ticks                                            |
+| `string` | `"category"` | One slot per item, labelled with the string (index mode only) |
+
+[See the category x axis example →](/examples/category-axis)
+
+## Initial view
+
+- Time data in index mode opens on the **latest** bars, `barSpacing` pixels apart (default 8), with `rightOffset` empty
+  slots on the right (default 3).
+- Everything else opens **fitted** to the data.
+- Override with `initialView="latest" | "fit"` or `defaultVisibleRange={[from, to]}` (x values, e.g. two `Date`s).
+
+## Updating data
+
+Pass a new array to update the chart. The engine compares it with the previous one:
+
+- **Appending** bars (realtime updates) keeps the view; if the newest bar was visible, the chart scrolls with it.
+- **Prepending** older bars (loading history) keeps the visible bars in place.
+- A completely different series (a new symbol) resets the view. To force a reset, change `resetKey`.
+
+Load history lazily with `onReachStart`, which fires once when the user scrolls to the first bar:
+
+```tsx
+<ChartCanvas
+  data={bars}
+  resetKey={symbol}
+  onReachStart={async (firstTime) => setBars([...(await fetchBefore(firstTime)), ...bars])}
+>
+  {/* ... */}
+</ChartCanvas>
+```
+
+For a complete data layer (history pages, realtime subscriptions, aggregation), see [Datafeed & realtime](/docs/datafeed).
+
+## Time zones
+
+Time labels use the browser's zone by default. Set `timeZone` to any IANA zone (`"America/New_York"`, `"UTC"`...) and
+customize labels with `tickFormatter(time, level)` and `crosshairFormatter(time)`.

@@ -1,0 +1,29 @@
+---
+title: "Freehand"
+description: "Brush and highlighter strokes for marking up a chart by hand."
+examples: /examples/drawing-tools/freehand
+api: /api/interactive/constants#brush
+---
+
+<ComponentPreview name="drawings-freehand" height={460} />
+
+Pick a freehand tool and **drag** on the chart. The stroke is stored as a list of points in data units, so it stays
+on the data while users pan and zoom, and can be selected, moved, recolored, undone and saved like any other drawing.
+
+| Tool        | Type          | Notes                                                                  |
+| ----------- | ------------- | ---------------------------------------------------------------------- |
+| Brush       | `brush`       | Smooth stroke, width 2 by default; an optional `fill` closes the shape |
+| Highlighter | `highlighter` | Thick translucent stroke (width 14, semi-transparent yellow)           |
+
+Freehand strokes ignore the magnet and bar snapping, so they follow the pointer exactly. Change the look with
+`style.color` (use alpha for transparency) and `style.width`:
+
+```ts
+drawings.add({ type: "highlighter", points, style: { color: "rgba(56, 189, 248, 0.4)", width: 18 } });
+```
+
+Tool defaults (like the highlighter's width and color) are merged into drawings created from the toolbar or with
+`add`; drawings passed in `defaultDrawings` or `load` use exactly the style they carry.
+
+Both tools are in the toolbar's **Freehand** group; show only them with
+`<DrawingToolbar tools={["brush", "highlighter"]} />`.

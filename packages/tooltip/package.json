@@ -1,50 +1,65 @@
 {
-    "name": "@reincharts/tooltip",
-    "version": "1.0.0",
-    "description": "Tooltips for reincharts",
-    "publishConfig": {
-        "access": "public"
+  "name": "@reincharts/tooltip",
+  "version": "2.0.0",
+  "description": "Legends and tooltips for Reincharts.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
     },
-    "main": "./lib/index.js",
-    "types": "./lib/index.d.ts",
-    "files": [
-        "lib",
-        "src"
-    ],
-    "sideEffects": false,
-    "author": "Reincharts",
-    "keywords": [
-        "chart",
-        "charts",
-        "charting",
-        "canvas",
-        "svg",
-        "interactive",
-        "react",
-        "d3"
-    ],
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/reincharts/reincharts.git"
-    },
-    "bugs": {
-        "url": "https://github.com/reincharts/reincharts/issues"
-    },
-    "scripts": {
-        "build": "npm run clean && npm run compile",
-        "clean": "rimraf lib",
-        "compile": "tsc -p tsconfig.json",
-        "watch": "tsc -p tsconfig.json --watch --preserveWatchOutput"
-    },
-    "dependencies": {
-        "@reincharts/core": "file:../core",
-        "d3-array": "^3.2.4",
-        "d3-format": "^3.1.0",
-        "d3-time-format": "^4.1.0"
-    },
-    "peerDependencies": {
-        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
-        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
-    }
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reincharts/reincharts.git",
+    "directory": "packages/tooltip"
+  },
+  "homepage": "https://reincharts.com",
+  "bugs": {
+    "url": "https://github.com/reincharts/reincharts/issues"
+  },
+  "keywords": [
+    "react",
+    "chart",
+    "charts",
+    "financial",
+    "trading",
+    "candlestick",
+    "canvas",
+    "stock",
+    "technical-analysis"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "test": "vitest run --project unit --passWithNoTests",
+    "test:visual": "vitest run --project browser --passWithNoTests"
+  },
+  "dependencies": {
+    "@reincharts/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@reincharts/testing": "workspace:*",
+    "@reincharts/axes": "workspace:*",
+    "@reincharts/series": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  }
 }

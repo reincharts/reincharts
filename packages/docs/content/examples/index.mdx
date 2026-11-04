@@ -1,0 +1,415 @@
+---
+title: Examples
+description: Live, interactive examples with full source code. Start simple, then explore dashboards, realtime data and more.
+---
+
+Every example is live: drag to pan, scroll or pinch to zoom. For everything at a glance, see the [gallery](/gallery).
+
+<ComponentPreview name="analytics-dashboard" height={560} hideCode />
+
+## General
+
+<Cards>
+  <Card
+    title="Line"
+    href="/examples/line"
+    description="A line through one value per point, with a last-value label and magnet crosshair."
+  />
+  <Card
+    title="Curves & steps"
+    href="/examples/curves"
+    description="Linear, monotone spline and step interpolation side by side."
+  />
+  <Card title="Area" href="/examples/area" description="A line with a gradient fill derived from its color." />
+  <Card title="Band" href="/examples/bands" description="An area between two values: a range or confidence interval." />
+  <Card
+    title="Stacked area"
+    href="/examples/stacked-area"
+    description="Values stacked on top of each other, or normalized to 100%."
+  />
+  <Card title="Bar" href="/examples/bar" description="Rounded columns on a category axis." />
+  <Card title="Grouped bars" href="/examples/grouped-bars" description="Several values per category, side by side." />
+  <Card
+    title="Stacked bars"
+    href="/examples/stacked-bars"
+    description="Stacked columns with an absolute or percent offset."
+  />
+  <Card title="Histogram" href="/examples/histogram" description="Positive and negative values colored by sign." />
+  <Card
+    title="Horizontal bars"
+    href="/examples/horizontal-bars"
+    description="Categories on the y axis, values along x, with pan and zoom."
+  />
+  <Card
+    title="Stacked horizontal bars"
+    href="/examples/stacked-horizontal-bars"
+    description="Progress by team as stacked or grouped horizontal bars."
+  />
+  <Card
+    title="Scatter"
+    href="/examples/scatter"
+    description="Points by group with marker shapes and a nearest-point tooltip."
+  />
+  <Card title="Bubble" href="/examples/bubble" description="Bubbles whose area encodes a third value." />
+  <Card title="Error bars" href="/examples/error-bars" description="Means with one standard deviation whiskers." />
+  <Card
+    title="Numeric x axis"
+    href="/examples/numeric-axis"
+    description="Unevenly sampled data on a continuous numeric axis."
+  />
+  <Card title="Category x axis" href="/examples/category-axis" description="One slot per category label." />
+</Cards>
+
+## Financial
+
+<Cards>
+  <Card
+    title="Candlestick"
+    href="/examples/candlestick"
+    description="Candles with a legend, last-value line and crosshair."
+  />
+  <Card
+    title="Hollow candles"
+    href="/examples/hollow-candles"
+    description="Rising candles drawn as outlines, with a magnet crosshair."
+  />
+  <Card
+    title="Custom candle colors"
+    href="/examples/candle-colors"
+    description="A color per candle computed from the data."
+  />
+  <Card
+    title="Volume candles"
+    href="/examples/volume-candles"
+    description="Volume encoded in candle opacity and width."
+  />
+  <Card title="OHLC bars" href="/examples/ohlc" description="Open and close ticks on a high-low line." />
+  <Card title="HLC bars" href="/examples/hlc-bars" description="High-low bars with a close tick only." />
+  <Card title="Heikin Ashi" href="/examples/heikin-ashi" description="Averaged candles that filter out noise." />
+  <Card title="Baseline" href="/examples/baseline" description="Two colors above and below a base value." />
+  <Card title="HLC area" href="/examples/hlc-area" description="The high-low range filled around the close." />
+  <Card
+    title="Volume overlay"
+    href="/examples/volume-overlay"
+    description="Volume bars on an overlay scale at the bottom of the price pane."
+  />
+  <Card title="Volume pane" href="/examples/volume-pane" description="Volume in its own pane with compact labels." />
+  <Card title="Columns" href="/examples/columns" description="One column per close, colored by change." />
+  <Card
+    title="Volume profile"
+    href="/examples/volume-profile"
+    description="Volume by price for the visible range, with the point of control."
+  />
+  <Card
+    title="Session volume profiles"
+    href="/examples/session-profiles"
+    description="One volume profile per trading day."
+  />
+  <Card title="Renko" href="/examples/renko" description="Fixed-size bricks that ignore time." />
+  <Card title="Kagi" href="/examples/kagi" description="Reversal lines with yin and yang thickness." />
+  <Card title="Point & Figure" href="/examples/point-and-figure" description="Columns of X and O boxes." />
+  <Card title="Line break" href="/examples/line-break" description="Three-line break boxes." />
+  <Card
+    title="Scale modes"
+    href="/examples/scale-modes"
+    description="Linear, logarithmic, percent and indexed price scales."
+  />
+  <Card
+    title="Multiple scales"
+    href="/examples/multiple-scales"
+    description="Two price scales with their own axes in one pane."
+  />
+</Cards>
+
+### Indicators
+
+<Cards>
+  <Card
+    title="Indicator panes"
+    href="/examples/indicators"
+    description="Overlays on the price pane and oscillators in their own panes."
+  />
+  <Card
+    title="Moving averages"
+    href="/examples/indicators/moving-averages"
+    description="SMA, EMA, WMA, HMA and VWMA on one chart."
+  />
+  <Card
+    title="Bands & channels"
+    href="/examples/indicators/bands"
+    description="Bollinger, Keltner, Donchian and envelopes."
+  />
+  <Card
+    title="Oscillators"
+    href="/examples/indicators/oscillators"
+    description="RSI, MACD, Stochastic, CCI, Williams %R, ROC, Momentum and ATR."
+  />
+  <Card title="Trend" href="/examples/indicators/trend" description="Parabolic SAR, Supertrend and Ichimoku." />
+  <Card
+    title="Trend strength"
+    href="/examples/indicators/trend-strength"
+    description="ADX / DMI, Aroon and Elder Ray."
+  />
+  <Card
+    title="Indicator components"
+    href="/examples/indicators/components"
+    description="SAR, Stochastic, ATR, Elder Ray and Force Index as typed components."
+  />
+  <Card title="Volume indicators" href="/examples/indicators/volume" description="OBV, MFI and VWAP." />
+  <Card
+    title="Crossover signals"
+    href="/examples/indicators/signals"
+    description="EMA crossovers marked with buy and sell markers."
+  />
+  <Card
+    title="Custom indicator"
+    href="/examples/indicators/custom-indicator"
+    description="Bollinger %B defined with defineIndicator."
+  />
+</Cards>
+
+### Drawing tools
+
+<Cards>
+  <Card
+    title="Drawing tools on a price chart"
+    href="/examples/financial-drawing-tools"
+    description="The full drawing toolbar on candlesticks: channels, Fibonacci, positions and price lines."
+  />
+  <Card
+    title="Fibonacci & Gann"
+    href="/examples/financial-drawing-tools/fibonacci"
+    description="Retracements, extensions and Gann fans."
+  />
+  <Card
+    title="Channels & pitchfork"
+    href="/examples/financial-drawing-tools/channels"
+    description="Parallel channels, regression trend and pitchforks."
+  />
+  <Card
+    title="Positions"
+    href="/examples/financial-drawing-tools/positions"
+    description="Long and short positions with risk / reward and P&L."
+  />
+  <Card
+    title="Price labels & lines"
+    href="/examples/financial-drawing-tools/price-labels"
+    description="Price labels and draggable target / stop lines."
+  />
+</Cards>
+
+### Datafeed
+
+<Cards>
+  <Card
+    title="In-memory datafeed"
+    href="/examples/datafeed"
+    description="Daily bars aggregated to weekly and monthly on demand."
+  />
+  <Card
+    title="Realtime candles"
+    href="/examples/datafeed/realtime"
+    description="A ticking feed that loads history as you scroll back."
+  />
+  <Card title="Bar replay" href="/examples/datafeed/replay" description="Reveal the data bar by bar." />
+  <Card title="CSV data" href="/examples/datafeed/csv" description="Parse a CSV export bundled with the app." />
+</Cards>
+
+### TradingChart widget
+
+<Cards>
+  <Card title="TradingChart" href="/examples/trading-chart" description="The full trading chart UI in one component." />
+  <Card title="Minimal UI" href="/examples/trading-chart/minimal" description="Switch off any part of the interface." />
+  <Card
+    title="Multi-chart layouts"
+    href="/examples/trading-chart/layouts"
+    description="Several synced charts in one widget."
+  />
+  <Card
+    title="Saving state"
+    href="/examples/trading-chart/state"
+    description="Serialize and restore the whole layout."
+  />
+  <Card
+    title="Custom indicator"
+    href="/examples/trading-chart/custom-indicator"
+    description="Add your own indicator to the indicators dialog."
+  />
+  <Card
+    title="Your own data"
+    href="/examples/trading-chart/your-data"
+    description="Pass an array of bars instead of a datafeed."
+  />
+  <Card
+    title="Chart type switcher"
+    href="/examples/trading-chart/main-series"
+    description="The widget's chart types in a plain chart with MainSeries."
+  />
+</Cards>
+
+## Advanced
+
+<Cards>
+  <Card
+    title="Analytics dashboard"
+    href="/examples/analytics-dashboard"
+    description="A responsive 2×2 grid of synced charts: one crosshair, one zoom."
+  />
+  <Card
+    title="Synced crosshair grid"
+    href="/examples/synced-grid"
+    description="Four symbols in a grid with a shared crosshair and range."
+  />
+  <Card
+    title="Multi-pane trading chart"
+    href="/examples/trading-panes"
+    description="Candles, moving averages, Bollinger Bands, volume, RSI and MACD."
+  />
+  <Card
+    title="Realtime streaming"
+    href="/examples/realtime-streaming"
+    description="Server metrics appended four times a second."
+  />
+  <Card
+    title="Large datasets"
+    href="/examples/large-dataset"
+    description="Up to 200,000 points with smooth pan and zoom."
+  />
+  <Card
+    title="Resizable panes"
+    href="/examples/panes"
+    description="Price, volume, RSI and MACD panes sharing one x axis."
+  />
+</Cards>
+
+## Interactivity
+
+<Cards>
+  <Card title="Tooltip" href="/examples/tooltip" description="A shared tooltip card that follows the pointer." />
+  <Card
+    title="Custom tooltip"
+    href="/examples/tooltip-custom"
+    description="A custom header and a computed row around the default card."
+  />
+  <Card title="Crosshair modes" href="/examples/crosshair-modes" description="Free, magnet and hidden crosshairs." />
+  <Card
+    title="Legend"
+    href="/examples/legend"
+    description="Values at the crosshair; click an item to hide its series."
+  />
+  <Card
+    title="Toggle series"
+    href="/examples/legend-toggle"
+    description="Stacked, grouped or overlaid bars with a legend that adds and removes series."
+  />
+  <Card
+    title="Legend actions"
+    href="/examples/legend-actions"
+    description="Show / hide buttons rendered after each legend item."
+  />
+  <Card
+    title="Compact legend"
+    href="/examples/legend-compact"
+    description="A legend that collapses into chips on small charts."
+  />
+  <Card title="Custom legend" href="/examples/legend-custom" description="Your own legend markup from useLegend." />
+  <Card title="Zoom & brush" href="/examples/zoom-brush" description="Zoom buttons and a brush to select a range." />
+  <Card title="Events" href="/examples/events" description="Pointer events in chart coordinates." />
+  <Card
+    title="Draggable line"
+    href="/examples/draggable-line"
+    description="A goal line users drag, built with useHitTarget."
+  />
+  <Card
+    title="Synced charts"
+    href="/examples/synced-charts"
+    description="Two charts with a shared crosshair, pan and zoom."
+  />
+</Cards>
+
+### Drawing tools
+
+<Cards>
+  <Card
+    title="Drawing toolbar"
+    href="/examples/drawing-tools"
+    description="Lines, freehand strokes, shapes, text and measurements on a line chart, with the style editor."
+  />
+  <Card
+    title="Lines"
+    href="/examples/drawing-tools/lines"
+    description="Trend lines, rays, info lines, arrows and horizontal / vertical lines."
+  />
+  <Card
+    title="Freehand"
+    href="/examples/drawing-tools/freehand"
+    description="Brush and highlighter strokes drawn by dragging on the chart."
+  />
+  <Card
+    title="Shapes"
+    href="/examples/drawing-tools/shapes"
+    description="Rectangles, ellipses, triangles and paths with fills."
+  />
+  <Card
+    title="Text & callouts"
+    href="/examples/drawing-tools/text"
+    description="Editable text labels and callouts pointing at a value."
+  />
+  <Card
+    title="Measure"
+    href="/examples/drawing-tools/measure"
+    description="Date ranges, value ranges and both at once on a traffic chart."
+  />
+  <Card
+    title="Alerts"
+    href="/examples/drawing-tools/alerts"
+    description="Threshold lines that fire when a live sensor reading crosses them."
+  />
+  <Card
+    title="Saving drawings"
+    href="/examples/drawing-tools/saving"
+    description="Controlled drawings stored in React state, with save, load, undo and redo."
+  />
+  <Card
+    title="Custom drawing tool"
+    href="/examples/drawing-tools/custom-tool"
+    description="A new drawing tool built with defineTool."
+  />
+</Cards>
+
+## Customization
+
+<Cards>
+  <Card title="Custom theme" href="/examples/theming" description="A terminal-style theme built with createTheme." />
+  <Card
+    title="Annotated line chart"
+    href="/examples/annotated-line"
+    description="A highlighted period, a goal line, text markers and a callout."
+  />
+  <Card
+    title="Reference lines & areas"
+    href="/examples/reference-lines"
+    description="Thresholds, incidents and a labelled peak."
+  />
+  <Card
+    title="Price lines"
+    href="/examples/price-lines"
+    description="Labelled horizontal lines, last values and current coordinates."
+  />
+  <Card title="Axes & grid" href="/examples/axes-grid" description="Axis placement, tick formats and grid styles." />
+  <Card
+    title="Straight lines"
+    href="/examples/straight-lines"
+    description="Horizontal and vertical lines at fixed values."
+  />
+  <Card
+    title="Custom series"
+    href="/examples/custom-series"
+    description="Your own canvas drawing with useRenderable."
+  />
+  <Card
+    title="Custom series with useSeries"
+    href="/examples/custom-series-hook"
+    description="A lollipop series with autoscale, legend and tooltip for free."
+  />
+</Cards>

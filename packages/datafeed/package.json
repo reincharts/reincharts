@@ -1,0 +1,63 @@
+{
+  "name": "@reincharts/datafeed",
+  "version": "2.0.0",
+  "description": "Datafeed adapter, realtime updates, bar aggregation and replay for Reincharts.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reincharts/reincharts.git",
+    "directory": "packages/datafeed"
+  },
+  "homepage": "https://reincharts.com",
+  "bugs": {
+    "url": "https://github.com/reincharts/reincharts/issues"
+  },
+  "keywords": [
+    "react",
+    "chart",
+    "charts",
+    "financial",
+    "trading",
+    "candlestick",
+    "canvas",
+    "stock",
+    "technical-analysis"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "test": "vitest run --project unit --passWithNoTests",
+    "test:visual": "vitest run --project browser --passWithNoTests"
+  },
+  "devDependencies": {
+    "@reincharts/testing": "workspace:*",
+    "@reincharts/axes": "workspace:*",
+    "@reincharts/series": "workspace:*",
+    "@reincharts/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  }
+}
