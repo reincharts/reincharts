@@ -1,0 +1,20 @@
+{
+  "name": "@reincharts/testing",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal test helpers for Reincharts packages (not published).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./setup": "./src/setup.ts",
+    "./browser": "./src/browser.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  }
+}

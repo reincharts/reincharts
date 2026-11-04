@@ -1,0 +1,38 @@
+---
+title: Overview
+description: Candlesticks and every other price chart type, on the same engine as the general charts.
+examples: /examples/candlestick
+api: /api/series
+---
+
+Financial charts use the same `<ChartCanvas>`, panes, axes and crosshair as every other chart. The x axis defaults to
+evenly spaced slots (`xMode="index"`), so weekends and overnight gaps disappear, and the y axis supports log, percent
+and indexed scales.
+
+<ComponentPreview name="candlestick" height={340} />
+
+<Cards>
+  <Card title="Candlestick" href="/docs/financial/candlestick" description="Candles, hollow candles, volume candles." />
+  <Card title="OHLC & HLC bars" href="/docs/financial/ohlc" description="Open-high-low-close bars." />
+  <Card title="Heikin Ashi" href="/docs/financial/heikin-ashi" description="Smoothed candles that filter noise." />
+  <Card title="Baseline" href="/docs/financial/baseline" description="Two colors above / below a base value." />
+  <Card title="HLC area" href="/docs/financial/hlc-area" description="High, low and close as a filled range." />
+  <Card title="Volume & columns" href="/docs/financial/volume" description="Volume bars and close columns." />
+  <Card
+    title="Volume profile"
+    href="/docs/financial/volume-profile"
+    description="Volume by price, per range or session."
+  />
+  <Card title="Renko" href="/docs/financial/renko" description="Fixed-size bricks, time-independent." />
+  <Card title="Kagi" href="/docs/financial/kagi" description="Reversal lines with yin / yang thickness." />
+  <Card title="Point & Figure" href="/docs/financial/point-and-figure" description="Columns of X and O." />
+  <Card title="Line break" href="/docs/financial/line-break" description="Three-line break boxes." />
+</Cards>
+
+## Beyond chart types
+
+- [Indicators](/docs/indicators): 30+ technical indicators as pure calculators and ready-made components.
+- [Drawing tools](/docs/drawing-tools): Fibonacci, channels, positions and price labels, on top of the
+  [general drawing tools](/docs/components/drawing-tools).
+- [Datafeed](/docs/datafeed): history pages, realtime updates, aggregation and bar replay.
+- [TradingChart widget](/docs/trading-chart): all of the above assembled into one component.

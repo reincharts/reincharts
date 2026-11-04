@@ -1,0 +1,50 @@
+---
+title: Candlestick
+description: Candlesticks with hollow, colored and volume-weighted variants.
+examples: /examples/candlestick
+api: /api/series/candlestick-series
+---
+
+<ComponentPreview name="candlestick" />
+
+## Usage
+
+```tsx
+import { CandlestickSeries } from "@reincharts/series";
+
+<Pane>
+  <CandlestickSeries />
+  <YAxis />
+</Pane>;
+```
+
+By default the series reads `open`, `high`, `low` and `close` and colors candles with the theme's `up` / `down` colors.
+Map other data shapes with accessors:
+
+```tsx
+<CandlestickSeries<Quote> open="o" high="h" low="l" close={(d) => d.last} />
+```
+
+All candles of one color are batched into a single path, so tens of thousands of candles render in a few milliseconds.
+Bodies narrower than 3px collapse to wicks only.
+
+## Hollow candles
+
+`hollow` draws rising candles as outlines. Pair it with the magnet crosshair, which snaps to the nearest open / high /
+low / close.
+
+[See the hollow candles example →](/examples/hollow-candles)
+
+## Custom colors
+
+Set `upColor` / `downColor`, or compute a color per candle with `fill` (plus `wickColor` and `borderColor`). The example
+highlights wide ranges.
+
+[See the custom candle colors example →](/examples/candle-colors)
+
+## Volume candles
+
+`<VolumeCandlesSeries>` encodes volume in each candle: its opacity (`mode="color"`), its body
+width (`"width"`, equivolume) or both.
+
+[See the volume candles example →](/examples/volume-candles)

@@ -8,234 +8,93 @@ If you need any help, feel free to open a discussion.
 
 ## About this repository
 
-This repository is a monorepo for interactive charting components built with React and TypeScript.
+This repository is a monorepo for canvas-based interactive and financial charts built with React and TypeScript.
 
-- Uses [npm](https://npmjs.com/) for development.
-- Uses [Lerna](https://lerna.js.org/) as our monorepo management tool.
-- Uses [TypeScript](https://www.typescriptlang.org/) for type safety and better developer experience.
-- Uses [Storybook](https://storybook.js.org/) for component documentation.
-- Uss a [Next.js](https://nextjs.org/) site for documentation.
-
+- [pnpm](https://pnpm.io/) workspaces for package management.
+- [Turborepo](https://turborepo.com/) for running tasks across packages (with caching).
+- [Changesets](https://github.com/changesets/changesets) for versioning and publishing.
+- [tsdown](https://tsdown.dev/) for building packages (ESM + type declarations).
+- [Vitest](https://vitest.dev/) for unit, component and visual (screenshot) tests.
+- [Fumadocs](https://fumadocs.dev/) + Next.js for the documentation site.
 
 ## Structure
 
-This repository is structured as follows:
-
 ```
 packages/
-├── annotations/     # Label and annotation components
-├── axes/           # X and Y axis components  
-├── charts/         # Main chart package that re-exports all components
-├── coordinates/    # Coordinate systems, cursors, and overlays
-├── core/           # Core functionality, base components, and shared utilities
-├── indicators/     # Technical analysis indicators (MACD, RSI, Bollinger Bands, etc.)
-├── interactive/    # Interactive drawing tools and annotations
-├── scales/         # Scale functions and domain utilities
-├── series/         # Chart series components (Candlestick, Line, Area, etc.)
-├── stories/        # Storybook stories and component examples
-├── tooltip/        # Tooltip components for data display
-└── utils/          # Shared utility functions and helpers
+├── core/         # ChartEngine, <ChartCanvas>, <Pane>, scales, theme, hooks, render loop, events
+├── series/       # Chart types: candles, OHLC, line, area, bars, scatter, renko, kagi...
+├── indicators/   # Indicator calculators, indicator definitions and <Indicator>
+├── axes/         # XAxis, YAxis, Grid
+├── coordinates/  # Crosshair, price lines, last value labels
+├── tooltip/      # Legend and floating tooltips
+├── annotations/  # Markers, labels, watermark, reference lines / areas
+├── interactive/  # Drawing tools, editing, undo/redo, persistence, toolbars
+├── datafeed/     # Datafeed adapter, realtime, aggregation, replay
+├── widget/       # <TradingChart>: batteries-included TradingView-style chart
+├── charts/       # "reincharts": re-exports every package
+├── testing/      # Internal test helpers (not published)
+└── docs/         # Documentation site (not published) → https://reincharts.com
 ```
 
-The documentation [guides](https://reincharts.com/guides/) are a good place to look for a high level overview of how the library works. 
-
-It has these build scripts:
-
-| Build Command | Description |
-|---------------|-------------|
-| `npm run build` | Build all packages in dependency order then builds docs |
-| `npm run build:<package>` | Build only the package specified |
-| `npm run docs` | Builds storybook and typedocs |
-| `npm run docs:stories` | Builds only storybook. Puts output in docs/ |
-| `npm run docs:typedoc` | Builds only typedocs. Puts output in typedocs/ |
-| `npm run build:web` | Builds the documentation website. Runs `build` first because it uses typedocs and storybook output. Puts output in web/ |
-
-It has these run scripts:
-
-| Run Command | Description |
-|---------------|-------------|
-| `npm run start` | Starts the storybook development server |
-| `npm run start:web` | Starts the built documentation server |
-| `npm run dev` (in packages/stories) | Starts the documentation development server |
+Packages export their TypeScript source inside the monorepo, so there is no build step during development: the docs site and tests use the source directly. `publishConfig` points the published packages at the built `dist/` output.
 
 ## Development
 
-### Fork this repo
-
-You can fork this repo by clicking the fork button in the top right corner of this page.
-
-### Clone on your local machine
-
 ```bash
 git clone https://github.com/your-username/reincharts.git
-```
-
-### Navigate to project directory
-
-```bash
 cd reincharts
+pnpm install
+pnpm dev          # docs site at http://localhost:3000 with hot reload of every package
 ```
 
-### Create a new branch
+| Command            | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| `pnpm dev`         | Runs the documentation site in development mode                             |
+| `pnpm build`       | Builds every package and the docs site                                      |
+| `pnpm test`        | Unit and component tests for every package                                  |
+| `pnpm test:visual` | Screenshot tests in Chromium (`pnpm exec playwright install chromium` once) |
+| `pnpm typecheck`   | Type checks every package                                                   |
+| `pnpm lint`        | Lints every package                                                         |
+| `pnpm format`      | Formats the repository with Prettier                                        |
+| `pnpm changeset`   | Describes a change for the next release                                     |
 
-```bash
-git checkout -b my-new-feature
-```
+Run a task for a single package with `pnpm turbo run test --filter=@reincharts/series`, or run Vitest directly inside a package directory.
 
-### Install dependencies
+### Tests
 
-```bash
-npm install
-```
+Every package has tests in `packages/<pkg>/test`:
 
-### Build the packages
+- `*.test.ts(x)`: unit and component tests in happy-dom with a mocked canvas.
+- `*.browser.test.tsx`: screenshot tests in real Chromium. Baselines live in `test/__screenshots__` and are platform specific. To update them after an intended visual change, run `pnpm vitest run --project browser --update` inside the package and review the new images.
 
-```bash
-npm run build
-```
+## Adding components
 
-### Run Storybook for development
+1. Put the component in the most appropriate package and export it from `src/index.ts`.
+2. Build canvas components on the core hooks (`useRenderable`, `useHitTarget`, `useChartEvent`, or `useSeries` for series).
+3. Add JSDoc comments to every prop. The docs site generates its API tables from them.
+4. Add tests (and a screenshot test for anything visual).
+5. Add or update the docs page and its live example in `packages/docs`.
 
-You can run Storybook to see components in action and test your changes:
+## Code style
 
-```bash
-npm run start
-```
+TypeScript strict mode, ESLint and Prettier (4 spaces, double quotes, 120 columns). Keep files small and the code simple. Avoid per-frame allocations in draw functions.
 
-or 
-```bash
-cd packages/stories
-npm run start
-```
+## Commit convention
 
-This will start the documentation development server at `http://localhost:4444`.
+Use `category(scope): message` with one of `feat`, `fix`, `refactor`, `docs`, `build`, `test`, `ci`, `chore`, `style`, `perf`. For example: `feat(series): add baseline series`. See [Conventional Commits](https://www.conventionalcommits.org/).
 
-The stories files are located in `packages/stories/src/stories`
+## Pull requests
 
-### Run documentation site for development
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass
+- [ ] Visual tests updated when rendering changed
+- [ ] Docs page and example updated
+- [ ] A changeset is added (`pnpm changeset`) for user-facing changes
 
-You can run the documentaion site in development to test changes to it:
+## Releasing
 
-or 
-```bash
-cd packages/stories
-npm run dev
-```
+All packages are versioned together. When changesets are merged to `main`, the Release workflow opens a "Version Packages" pull request. Merging that pull request builds and publishes the packages to npm. The docs site deploys to GitHub Pages on every push to `main`.
 
-This will start the documentation development server at `http://localhost:3000`.
-
-## Documentation
-
-### Storybook Stories
-
-Storybook is used for component documentation and interactive examples. When adding or modifying components:
-
-1. Create or update the corresponding story file
-2. Include examples showing different use cases
-3. Document component props and usage patterns
-
-### API Documentation
-
-API documentation is generated using TypeDoc. To build and view the documentation:
-
-```bash
-npm run docs:typedoc
-```
-
-The generated documentation will be available in the `typedocs/` directory.
-
-## Component Development
-
-When developing new components or modifying existing ones:
-
-### Adding New Components
-
-1. **Choose the right package** - Place your component in the most appropriate package
-2. **Follow naming conventions** - Use PascalCase for component names
-3. **Include TypeScript types** - All components must have proper type definitions
-4. **Write stories** - Create Storybook stories for your components
-5. **Export properly** - Update the package's `index.ts` file
-6. **Include Comments** - Add comments to both functions and props help others understand your code. JSDoc comments get inlcuded in the typedocs. 
-
-## Code Style
-
-The codebase is written in TypeScript with strict settings enabled. ESLint is used for code linting and formatting.
-
-### Style Guidelines
-
-- **TypeScript**: Use strict mode with all warnings and errors enabled
-- **Formatting**: Run `npm run lint:fix` to auto-format code
-- **File Length**: Keep files short when possible
-- **Naming**: Use descriptive names for variables and functions
-- **Comments**: Include JSDoc comments for public APIs
-- **Imports**: Use absolute imports and organize them logically
-
-### Running the linter
-
-```bash
-# Check for style issues
-npm run lint
-
-# Auto-fix style issues
-npm run lint:fix
-```
-
-## Commit Convention
-
-Before creating a Pull Request, please check that your commits comply with the commit conventions used in this repository.
-
-When you create a commit, please follow the convention `category(scope): message` using one of the following categories:
-
-- `feat`: New features or enhancements
-- `fix`: Bug fixes
-- `refactor`: Code refactoring without functional changes
-- `docs`: Documentation changes
-- `build`: Build system or dependency changes
-- `test`: Adding or modifying tests
-- `ci`: CI/CD configuration changes
-- `chore`: Other changes that don't modify src or test files
-- `style`: Code style changes (formatting, semicolons, etc.)
-- `perf`: Performance improvements
-
-### Examples
-
-- `feat(series): add volume profile series component`
-- `fix(indicators): correct MACD calculation for edge cases`
-- `docs(readme): update instructions`
-- `refactor(core): simplify chart rendering logic`
-
-For more details, see [Conventional Commits](https://www.conventionalcommits.org/).
-
-## Pull Request Process
-
-1. **Create an issue** - For significant changes, create an issue first to discuss the issue
-2. **Fork and branch** - Create a feature branch from main
-3. **Implement changes** - Make your changes following the guidelines above
-4. **Update documentation** - Update stories, README, or other docs as needed
-5. **Submit PR** - Create a pull request with a clear description
-
-### Pull Request Checklist
-
-- [ ] Lint checks pass (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] Documentation site is updated
-- [ ] Storybook stories are added/updated
-- [ ] Comments are added/updated
-- [ ] Commit messages follow convention
-- [ ] Changes are focused
-
-## Package Publishing
-
-Package publishing is handled automatically through CI/CD. When changes are merged to main:
-
-1. Lerna detects changed packages
-2. Versions are bumped according to conventional commits
-3. Packages are built and published to npm
-4. Documentation is updated and deployed
-
-## Getting Help
-
-If you need help or have questions:
+## Getting help
 
 - Check the [documentation](https://reincharts.com/)
 - [Open an issue](https://github.com/reincharts/reincharts/issues) for bugs

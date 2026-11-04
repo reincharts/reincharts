@@ -1,0 +1,9 @@
+# the root .gitignore ignores every lib/ folder (v1 build output); this package keeps its source in lib/
+!lib/
+.next/
+.source/
+.snippets/
+out/
+next-env.d.ts
+screenshots/
+*.tsbuildinfo

@@ -1,30 +1,23 @@
-# Reincharts
+# reincharts
 
-Reincharts is a set of composable React components built for interactive charting.
-
-## Installation
+Interactive, canvas-rendered charts for React: line, area, bar and scatter charts plus financial charts, with pan, zoom, crosshair, tooltips, annotations and drawing tools. This package re-exports every Reincharts package.
 
 ```bash
-npm install reincharts
+npm i reincharts
 ```
 
-This is the main aggregated package that re-exports all individual `@reincharts/*` packages. You can also install individual packages if you prefer:
+```tsx
+import { CandlestickSeries, ChartCanvas, Crosshair, Pane, XAxis, YAxis } from "reincharts";
+import "reincharts/styles.css"; // only needed for drawing toolbars and <TradingChart>
 
-- `@reincharts/core` - ChartCanvas, Chart, Generic components
-- `@reincharts/axes` - XAxis, YAxis
-- `@reincharts/series` - LineSeries, CandlestickSeries, BarSeries, etc.
-- `@reincharts/coordinates` - CrossHairCursor, MouseCoordinateX/Y, EdgeIndicator
-- `@reincharts/tooltip` - OHLCTooltip, SingleValueTooltip, MACDTooltip
-- `@reincharts/interactive` - TrendLine, Brush, ZoomButtons, Fibonacci tools
-- `@reincharts/annotations` - Label, BarAnnotation, SvgPathAnnotation
-- `@reincharts/scales` - Discontinuous time scale providers
-- `@reincharts/indicators` - Indicator helpers
-- `@reincharts/utils` - withSize, withDeviceRatio HOCs
+<ChartCanvas data={bars} height={420}>
+  <Pane>
+    <CandlestickSeries />
+    <YAxis />
+    <Crosshair />
+  </Pane>
+  <XAxis />
+</ChartCanvas>;
+```
 
-## Documentation
-
-Visit [reincharts.com](https://reincharts.com) to view the documentation.
-
-## License
-
-[MIT](https://github.com/reincharts/reincharts/blob/main/LICENSE)
+Documentation, live examples and API reference: https://reincharts.com

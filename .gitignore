@@ -57,11 +57,17 @@ typings/
 .env
 
 # build output
-docs/
-typedocs/
 dist/
 lib/
-web/
+out/
+.next/
+.source/
+.turbo/
+next-env.d.ts
+__screenshots__/**/*-actual*
+__screenshots__/**/*-diff*
+.vitest-attachments/
+.vitest/
 server.js
 dump.rdb
 

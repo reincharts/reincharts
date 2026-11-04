@@ -1,0 +1,31 @@
+---
+title: Heikin Ashi
+description: Smoothed candles computed from averaged prices.
+examples: /examples/heikin-ashi
+api: /api/indicators/functions#heikinashi
+---
+
+<ComponentPreview name="heikin-ashi" />
+
+## Usage
+
+Heikin Ashi is a data transform, not a separate series: `heikinAshi(bars)` from `@reincharts/indicators` returns new
+bars with averaged OHLC, which you draw with the regular `<CandlestickSeries>`.
+
+```tsx
+import { CandlestickSeries } from "@reincharts/series";
+import { heikinAshi } from "@reincharts/indicators";
+
+const haBars = useMemo(() => heikinAshi(bars), [bars]);
+
+<ChartCanvas data={haBars}>
+  <CandlestickSeries />
+</ChartCanvas>;
+```
+
+- `close = (open + high + low + close) / 4`
+- `open = (previous HA open + previous HA close) / 2`
+- `high` / `low` = the extremes of the bar's high / low and the HA open / close
+
+Indicators keep working on the transformed bars. To compute indicators on the real prices instead, pass the original
+values through as extra fields and point the indicator `source` at them.

@@ -1,0 +1,19 @@
+---
+title: "Zoom buttons & brush"
+description: "Zoom buttons and a brush to select or zoom into a range."
+examples: /examples/zoom-brush
+api: /api/interactive/brush
+---
+
+<ComponentPreview name="zoom-brush" height={420} />
+
+## ZoomButtons
+
+`<ZoomButtons>` adds zoom out, zoom in, scroll left / right and reset buttons at the bottom of the chart, shown while
+the pointer is over it (`autoHide`). Place it inside `<ChartCanvas>`.
+
+## Brush
+
+`<Brush>` captures drags to select a range: `mode="x"` selects a time range over the full pane height, `"xy"` a
+rectangle. By default it zooms into the selection; `onSelect` receives the range (x values, data indices and prices).
+Toggle `enabled` to switch between panning and brushing.

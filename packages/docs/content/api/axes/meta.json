@@ -1,0 +1,9 @@
+{
+  "title": "@reincharts/axes",
+  "pages": [
+    "---Components---",
+    "grid",
+    "x-axis",
+    "y-axis"
+  ]
+}

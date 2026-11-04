@@ -1,0 +1,88 @@
+---
+title: Custom series
+description: Draw anything on the chart with useRenderable.
+examples: /examples/custom-series
+api: /api/core/use-renderable
+---
+
+Every built-in series, axis and tool is a React component that registers a **renderable** with the engine using
+`useRenderable`. Your components can do exactly the same. This band between the daily low and high temperature is a
+complete custom series:
+
+<ComponentPreview name="custom-series" />
+
+## The renderable spec
+
+`useRenderable(spec)` registers `spec` with the closest chart and pane. The latest spec is used every frame, and the
+chart redraws whenever your component re-renders, so plain props just work.
+
+| Field                       | Purpose                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| `draw(ctx, scope)`          | Draw one frame. Required.                                                         |
+| `pane`                      | Defaults to the closest `<Pane>`; `null` draws over the whole canvas (like axes). |
+| `scale`                     | Price scale id (default `"right"`).                                               |
+| `layer`                     | `"scene"` (default) or `"top"` for things that follow the pointer.                |
+| `zIndex`                    | Draw order (grid is -100, axes 100).                                              |
+| `clip`                      | Clip to the plot area (default true for pane renderables).                        |
+| `extent(start, end)`        | `[min, max]` of your values on the visible bars, for autoscale.                   |
+| `baseValue(start)`          | Base for percent / indexed scale modes.                                           |
+| `snapValues(i)`             | Values the magnet crosshair and drawings snap to at bar `i`.                      |
+| `legend(i)`                 | Name, color and values shown by legends at bar `i`.                               |
+| `lastValue()`               | Value + color for the last-value label on the price axis.                         |
+| `xExtent()`, `indexAt(x,y)` | For linear x mode and custom hover picking (scatter, horizontal bars).            |
+
+## The draw scope
+
+Inside a pane renderable, `ctx` is translated to the pane's plot origin and clipped. The scope gives you everything
+needed to map data to pixels:
+
+- `data`, `start`, `end`: the data and the first / last visible index. Only iterate `start..end`.
+- `x(i)`: plot x of data index `i`; `barSpacing`: pixels between bars.
+- `y(value)`: pane y of a raw value on your scale (log, percent and indexed modes are already handled).
+- `theme`, `pane`, `layout`, `crosshair`, `ratio`, `engine`.
+
+## useSeries
+
+For standard series, `useSeries` from `@reincharts/series` does most of the work: give it `values(d, i)` (the
+numbers autoscale and the magnet use), a `color` and `draw`, and it implements the extent, legend and tooltip values,
+snapping, the last-value label and the percent / indexed base. Series props (`name`, `scale`, `visible`, `zIndex`,
+`legend`, `format`) are passed straight through.
+
+```tsx
+function LollipopSeries({ y = "value", ...props }: SeriesProps & { y?: string }) {
+  const value = accessor<any, number | undefined>(y);
+  useSeries({
+    ...props,
+    color: "#ec4899",
+    values: value,
+    extentIncludes: [0],
+    draw(ctx, { data, start, end, x, y: toY }) {
+      for (let i = start; i <= end; i++) {
+        const v = value(data[i], i);
+        if (v !== undefined) drawMarker(ctx, "circle", x(i), toY(v), 9, { fill: "#ec4899" });
+      }
+    },
+  });
+  return null;
+}
+```
+
+[See the useSeries example →](/examples/custom-series-hook)
+
+## Helpers
+
+The building blocks of the built-in series are exported, so custom series can draw the same way:
+
+| Package                   | Helpers                                                                                                                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@reincharts/series`      | `tracePath`, `traceArea`, `areaFill`, `verticalGradient` (lines and areas), `barWidth`, `barLeft`, `pixelSpan`, `addColumn`, `addRow`, `groupLayout`, `PathBatch` (bars), `traceMarker`, `drawMarker`, `stack`, `stackAt`, `volumeProfile`, `paletteColor` |
+| `@reincharts/series`      | `linePoints` (per-pixel aggregation), `getLod` / `lodExtent` (block index for large data), `drawOhlcColumns`, `ohlcExtent`                                                                                                                                 |
+| `@reincharts/core`        | `accessor`, `crisp`, `withAlpha`, `contrastText`, `drawLabel`, `niceTicks`, `formatPrice`, `formatCompact`, `lowerBound` / `upperBound` / `nearestIndex`, `PriceScale`, `TimeFormatter`                                                                    |
+| `@reincharts/coordinates` | `drawAxisLabel`, `axisLabelHeight`, `axisBand`, `axesOf`, `lastValues`, `drawValueMarkers`, `crosshairPoint` (axis labels and markers)                                                                                                                     |
+
+See [Performance](/docs/concepts/performance) for drawing large datasets.
+
+## Tips
+
+- Batch shapes of one color into one path and fill once.
+- Use `layer: "top"` for hover effects and read `scope.crosshair`; the scene is not redrawn on pointer moves.

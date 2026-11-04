@@ -1,0 +1,9 @@
+{
+  "title": "Datafeed",
+  "pages": [
+    "index",
+    "realtime",
+    "replay",
+    "csv"
+  ]
+}

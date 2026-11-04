@@ -1,0 +1,23 @@
+---
+title: OHLC & HLC bars
+description: Open-high-low-close bars with tick marks, and HLC bars.
+examples: /examples/ohlc
+api: /api/series/ohlc-series
+---
+
+<ComponentPreview name="ohlc" />
+
+## Usage
+
+```tsx
+<OHLCSeries />
+```
+
+Each bar is a vertical high-low line with a left tick at the open and a right tick at the close. Lines grow thicker as
+you zoom in (`thickness="auto"`); set a fixed `thickness` in pixels to override.
+
+## HLC bars
+
+`hlc` drops the open tick. Combine it with a static `color` for a neutral look.
+
+[See the hlc bars example →](/examples/hlc-bars)

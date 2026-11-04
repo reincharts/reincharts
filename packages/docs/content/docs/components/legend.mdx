@@ -1,0 +1,78 @@
+---
+title: Legend
+description: Pane legends with values at the crosshair, visibility toggles and a compact mode for small charts.
+examples: /examples/legend
+api: /api/tooltip/legend
+---
+
+<ComponentPreview name="legend" height={460} />
+
+## Usage
+
+Put a `<Legend>` inside each `<Pane>`. It lists every series and indicator of the pane with its values at the crosshair
+(or the last bar when the pointer is outside the chart).
+
+```tsx
+<Pane>
+  <LineSeries name="High" y="high" />
+  <LineSeries name="Mean" y="temp" />
+  <Legend />
+</Pane>
+```
+
+- `title` replaces the first series' name (the symbol row) and turns on `showChange` (change and change % vs the
+  previous bar).
+- **Click an item to hide its series**; hidden series leave the autoscale too. Turn it off with `toggleOnClick={false}`.
+- `orientation="horizontal"` lays items out in a row, handy for general charts; `swatch` adds color dots;
+  `showValues={false}` shows names only.
+- `filter`, `items` (custom items) and `renderItem` customise the content.
+
+## Compact mode
+
+On small charts a full legend would cover the data. With `compact` (default `"auto"`, which turns it on when the pane
+is narrower than 480px) the first item shows only its name and current value, and the other items collapse into an
+"N more" button with their colors; clicking it expands them into a row of clickable chips. Force it with
+`compact={true}`, or turn it off with `compact={false}`.
+
+```tsx
+<Legend compact />
+```
+
+Resize the browser window below 480px on any example to see it, or try the
+[compact legend example](/examples/legend-compact).
+
+## Item actions
+
+`actions` renders extra controls after each item (eye / settings / remove buttons). It receives the
+item and a context with `toggle()`, the shown index and the hover state.
+
+[See the legend actions example →](/examples/legend-actions)
+
+## Custom legends
+
+`useLegend(paneId)` returns what `<Legend>` renders: the shown data `index`, whether it comes from the crosshair
+(`hovered`), and one entry per series with its name, color, formatted values and `hidden` flag. Use it inside the chart
+to build your own legend markup, for example in a `<ChartOverlay>`; toggle a series with
+`engine.setHidden(item.id)`.
+
+```tsx
+function ValueChips() {
+  const engine = useChart();
+  const { entries } = useLegend(usePaneId());
+  return (
+    <ChartOverlay>
+      {entries.map(({ item }) => (
+        <button
+          key={item.id}
+          onClick={() => engine.setHidden(item.id)}
+          style={{ color: item.color, pointerEvents: "auto" }}
+        >
+          {item.name} {item.values[0]?.value}
+        </button>
+      ))}
+    </ChartOverlay>
+  );
+}
+```
+
+[See the custom legend example →](/examples/legend-custom)

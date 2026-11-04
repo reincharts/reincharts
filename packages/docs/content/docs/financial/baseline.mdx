@@ -1,0 +1,18 @@
+---
+title: Baseline
+description: A line with different colors and fills above and below a base value.
+examples: /examples/baseline
+api: /api/series/baseline-series
+---
+
+<ComponentPreview name="baseline" />
+
+## Usage
+
+```tsx
+<BaselineSeries base={55} />
+```
+
+Values above `base` use `topColor` (theme `up`), values below use `bottomColor` (theme `down`). Without `base` the
+series uses the price at the vertical middle of the pane, so the split follows
+panning and zooming.

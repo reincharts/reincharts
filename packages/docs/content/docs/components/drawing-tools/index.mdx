@@ -1,0 +1,145 @@
+---
+title: "Overview"
+description: "Let users draw on any chart: lines, freehand strokes, shapes, text and measurements, with editing, undo / redo and JSON save."
+examples: /examples/drawing-tools
+api: /api/interactive
+---
+
+<ComponentPreview name="drawings" height={520} />
+
+`@reincharts/interactive` turns any chart into a canvas users can mark up: a toolbar, selection and editing, magnet,
+undo / redo, copy / paste, JSON save / load, crossing alerts and an API for your own tools. Drawings are rendered on
+the chart canvas and stay anchored to the data while users pan and zoom; the toolbars are plain DOM.
+
+## Setup
+
+Import the toolbar stylesheet once, create a controller with `useDrawings`, and render three components:
+
+```tsx
+import { ChartCanvas, Pane } from "@reincharts/core";
+import { LineSeries } from "@reincharts/series";
+import { Drawings, DrawingStyleToolbar, DrawingToolbar, useDrawings } from "@reincharts/interactive";
+import "@reincharts/interactive/styles.css";
+
+function Chart({ data }: { data: { date: Date; temp: number }[] }) {
+  const drawings = useDrawings({ defaultDrawings: [] });
+  return (
+    <div style={{ display: "flex", height: 520 }}>
+      <DrawingToolbar controller={drawings} />
+      <ChartCanvas data={data}>
+        <Pane id="main">
+          <LineSeries y="temp" />
+        </Pane>
+        <Drawings controller={drawings} />
+        <DrawingStyleToolbar controller={drawings} />
+      </ChartCanvas>
+    </div>
+  );
+}
+```
+
+- `<DrawingToolbar>` is the tool palette: tool groups with flyouts, favorites, cursor / eraser, magnet, keep drawing,
+  lock all, hide all and remove all. Use `tools` to choose the tools and `orientation="horizontal"` to put it on top.
+- `<Drawings>` renders and edits the drawings, each in the pane named by its `pane` (give your panes stable ids).
+- `<DrawingStyleToolbar>` floats above the selected drawing: color, width, dash, fill, text and extend controls.
+- The toolbars follow a `.dark` / `data-theme="dark"` ancestor, or take `theme`, and are styled with `--rc-*` CSS
+  variables.
+
+## Tools
+
+| Group                                                  | Tools                                                                                              |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| [Lines](/docs/components/drawing-tools/lines)          | Trend line, ray, extended line, info line, arrow, horizontal line / ray, vertical line, cross line |
+| [Freehand](/docs/components/drawing-tools/freehand)    | Brush, highlighter                                                                                 |
+| [Shapes](/docs/components/drawing-tools/shapes)        | Rectangle, ellipse, triangle, path                                                                 |
+| [Text & callouts](/docs/components/drawing-tools/text) | Text, callout                                                                                      |
+| [Measure](/docs/components/drawing-tools/measure)      | Date range, value range, date & value range                                                        |
+
+The **Freehand** group is for marking up a chart by hand: the brush draws smooth strokes, the highlighter thick
+translucent ones. Price charts get extra tools (Fibonacci, channels, positions, price labels): see
+[financial drawing tools](/docs/drawing-tools). Pass `tools` to show only the tools you need:
+
+```tsx
+<DrawingToolbar controller={drawings} tools={["trendLine", "horizontalLine", "brush", "highlighter", "text"]} />
+```
+
+## Editing
+
+- **Draw:** pick a tool and click each point (paths: click points, double-click or `Enter` to finish; brush and
+  highlighter: drag).
+- **Select:** click a drawing; `Shift`-click adds to the selection. Drag the body to move, drag handles to reshape.
+- **Magnet:** "weak" snaps to nearby series values, "strong" always snaps. Hold `Ctrl` / `Cmd` to invert it while
+  drawing or dragging.
+- **Constrain:** hold `Shift` while drawing lines to snap to 45° angles.
+- **Keep drawing:** stay in the tool after finishing a drawing.
+- **Lock / hide:** lock or hide all drawings from the toolbar; locked drawings can be selected but not moved.
+- **Order:** `bringToFront` / `sendToBack` on the controller.
+
+### Keyboard shortcuts
+
+| Key                                                  | Action                                          |
+| ---------------------------------------------------- | ----------------------------------------------- |
+| `Esc`                                                | Cancel the drawing, leave the tool, or deselect |
+| `Delete` / `Backspace`                               | Remove the selected drawings                    |
+| `Ctrl` / `Cmd` + `Z`                                 | Undo                                            |
+| `Ctrl` / `Cmd` + `Y`, `Ctrl` / `Cmd` + `Shift` + `Z` | Redo                                            |
+| `Ctrl` / `Cmd` + `C` / `V`                           | Copy / paste                                    |
+| `Ctrl` / `Cmd` + `D`                                 | Duplicate                                       |
+| `Enter`                                              | Finish a path                                   |
+| `Shift` (while drawing)                              | Constrain angles                                |
+| `Ctrl` / `Cmd` (while drawing)                       | Invert the magnet                               |
+
+## Saving & loading
+
+A drawing is plain JSON: anchor points in data units (`time` is the x value, `price` the y value on the pane's
+scale) plus a style, so drawings survive reloads, zoom and new data.
+
+```ts
+const drawing: Drawing = {
+  id: "trend-1",
+  type: "trendLine",
+  pane: "main",
+  points: [
+    { time: Date.UTC(2026, 3, 13), price: 6.3 },
+    { time: Date.UTC(2026, 4, 20), price: 13.2 },
+  ],
+  style: { color: "#2962ff", width: 2 },
+};
+```
+
+`useDrawings(options)` returns a controller with the state (`drawings`, `selectedIds`, `activeTool`, `magnet`...) and
+methods: `setTool`, `add`, `update`, `removeSelected`, `removeAll`, `lockAll`, `hideAll`, `copy`, `paste`, `undo`,
+`redo`, `toJSON`, `load`... Save with `drawings.toJSON()` and restore with `drawings.load(saved)`. It works
+**uncontrolled** (`defaultDrawings`) or **controlled** (`drawings` + `onChange`, for React state or your store); see
+[Saving & loading](/docs/guides/saving-loading). Tool defaults (a ray's `extend: "right"`, the highlighter's width)
+are merged only into drawings created from the toolbar or with `add`; drawings passed to `defaultDrawings` or `load`
+are drawn with exactly the style they carry. Event callbacks: `onCreate`, `onUpdate`, `onRemove`, `onSelect`,
+`onCross` (see [Alerts](/docs/components/drawing-tools/alerts)).
+
+## Controller, state and tool registry
+
+- `useDrawings` wraps `createDrawingController(options)`, a framework-agnostic store. Pass the controller to child
+  components and read its state there with `useDrawingState(controller)` (for a custom toolbar, a drawing list, an
+  undo button...).
+- The built-in tools are exported as `builtinTools` (toolbar order), grouped as `lineTools`, `freehandTools`,
+  `fibTools`, `shapeTools`, `annotationTools` and `measureTools`, with labels in `toolGroups`. Each tool also has its
+  own export (`trendLine`, `brush`, `fibRetracement`...).
+- `useDrawings({ builtinTools: false, tools: [...] })` registers only your tools; `defaultStyle` applies a style to
+  every new drawing, `DRAWING_COLORS` is the style toolbar's swatch palette.
+
+```tsx
+function UndoButton({ controller }: { controller: DrawingController }) {
+  const { canUndo } = useDrawingState(controller);
+  return (
+    <button disabled={!canUndo} onClick={() => controller.undo()}>
+      Undo
+    </button>
+  );
+}
+```
+
+## Custom tools
+
+A tool is a plain object built with `defineTool`: how many points the user places, how to draw it and how to hit-test
+it. Custom tools get the toolbar button, magnet, editing, undo / redo and persistence for free; see
+[Custom drawing tool](/docs/guides/custom-drawing-tool).

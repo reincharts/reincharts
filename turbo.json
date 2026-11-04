@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "concurrency": "13",
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**", ".source/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {},
+    "lint": {},
+    "test": {
+      "outputs": []
+    },
+    "test:visual": {
+      "outputs": [],
+      "inputs": ["$TURBO_DEFAULT$", "!**/__screenshots__/**/*-actual*"]
+    }
+  }
+}

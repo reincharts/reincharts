@@ -1,0 +1,59 @@
+---
+title: "Theming"
+description: "Chart theme and the --rc-* CSS variables of the widget UI."
+examples: /examples/trading-chart
+api: /api/widget/trading-chart
+---
+
+## Chart theme
+
+`theme` takes `"light"`, `"dark"` or a full [theme object](/docs/concepts/theming), applied to every chart of the
+layout. The theme toggle in the toolbar switches between light and dark (and is saved in the state). This site passes a
+zinc theme that matches its own colors.
+
+```tsx
+<TradingChart theme={createTheme({ background: "#09090b", up: "#22c55e", down: "#ef4444" }, darkTheme)} />
+```
+
+## UI colors
+
+The toolbars, menus and dialogs are plain CSS scoped to `.rc-widget` and themed with CSS custom properties. The widget
+sets `data-theme="dark"` in dark mode. Override any of them:
+
+```css
+.rc-widget {
+  --rc-accent: #7c3aed;
+  --rc-radius: 10px;
+  --rc-font: "Inter", sans-serif;
+}
+.rc-widget[data-theme="dark"] {
+  --rc-bg: #09090b;
+  --rc-panel: #18181b;
+  --rc-border: #27272a;
+}
+```
+
+| Variable                | Used for                                   |
+| ----------------------- | ------------------------------------------ |
+| `--rc-bg`               | Widget and toolbar background              |
+| `--rc-panel`            | Menus, dialogs, popovers                   |
+| `--rc-border`           | Borders and separators                     |
+| `--rc-border-strong`    | Input and stronger borders                 |
+| `--rc-text`             | Text                                       |
+| `--rc-muted`            | Secondary text and icons                   |
+| `--rc-accent`           | Active buttons, selection, primary buttons |
+| `--rc-accent-hover`     | Hovered primary buttons                    |
+| `--rc-accent-text`      | Text on accent backgrounds                 |
+| `--rc-hover`            | Hovered buttons and rows                   |
+| `--rc-active`           | Pressed / selected buttons                 |
+| `--rc-input-bg`         | Inputs and selects                         |
+| `--rc-backdrop`         | Dialog backdrop                            |
+| `--rc-shadow`           | Menus and dialogs shadow                   |
+| `--rc-star`             | Favorite stars                             |
+| `--rc-up` / `--rc-down` | Price change colors in the UI              |
+| `--rc-radius`           | Corner radius                              |
+| `--rc-font`             | Font family                                |
+| `--rc-toolbar-height`   | Top toolbar height                         |
+| `--rc-bottombar-height` | Bottom bar height                          |
+
+The drawing toolbars use the same variable names on `.rc-dt`, `.rc-dst` and `.rc-zoom-buttons`.

@@ -1,0 +1,9 @@
+dist
+.next
+out
+.source
+.turbo
+coverage
+pnpm-lock.yaml
+**/__screenshots__
+packages/docs/data

@@ -1,0 +1,41 @@
+---
+title: Tooltip
+description: Floating tooltips that follow the pointer, shared or for the nearest point.
+examples: /examples/tooltip
+api: /api/tooltip/tooltip
+---
+
+<ComponentPreview name="tooltip" />
+
+## Usage
+
+`<Tooltip>` shows a card next to the pointer with the hovered x value and the values of the pane's series. It is the
+natural choice for general-purpose charts (financial charts usually use a [Legend](/docs/components/legend) instead).
+
+```tsx
+<Pane>
+  <AreaSeries y="visitors" />
+  <LineSeries y="returning" />
+  <Tooltip />
+</Pane>
+```
+
+## Modes
+
+- `mode="shared"` (default) lists every series at the hovered index.
+- `mode="nearest"` shows only the series under the pointer. Scatter and bubble series pick the nearest point in 2D, and
+  horizontal bars pick the bar under the pointer.
+
+[See the Scatter example →](/examples/scatter)
+
+## Custom content
+
+`formatHeader` changes the header, `filter` the items, and `render(content)` replaces the card entirely; the returned
+node is still positioned next to the pointer. `content` has the hovered `index` and `datum`, the `header` and the
+legend `items`. `TooltipCard` is the default card: wrap it to add rows instead of rebuilding it.
+
+```tsx
+<Tooltip render={(content) => <TooltipCard content={content} theme={myTheme} style={{ minWidth: 160 }} />} />
+```
+
+[See the custom tooltip example →](/examples/tooltip-custom)

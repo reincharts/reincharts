@@ -1,0 +1,13 @@
+{
+  "title": "@reincharts/widget",
+  "pages": [
+    "---Components---",
+    "main-series",
+    "trading-chart",
+    "widget-icon",
+    "---Reference---",
+    "functions",
+    "constants",
+    "types"
+  ]
+}

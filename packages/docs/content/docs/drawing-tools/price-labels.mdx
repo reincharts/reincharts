@@ -1,0 +1,17 @@
+---
+title: "Price labels & lines"
+description: "Labels that show the price at a point, and titled price lines with an axis label."
+examples: /examples/financial-drawing-tools/price-labels
+api: /api/interactive/constants#pricelabel
+---
+
+<ComponentPreview name="drawings-price-labels" height={460} />
+
+| Tool        | Type         | Points | Notes                                                                              |
+| ----------- | ------------ | ------ | ---------------------------------------------------------------------------------- |
+| Price label | `priceLabel` | 1      | Shows the price at the point, or `style.text`                                      |
+| Price line  | `priceLine`  | 1      | Horizontal line with a title, an axis label and a close button; triggers `onCross` |
+
+Price lines are draggable, so they work well for orders, targets, stops and
+[alerts](/docs/components/drawing-tools/alerts). For a fixed line that users can't move, use
+[`<PriceLine>`](/docs/components/price-lines).

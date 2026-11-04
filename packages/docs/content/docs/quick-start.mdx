@@ -1,0 +1,90 @@
+---
+title: Quick Start
+description: Render your first interactive chart in a few lines.
+---
+
+<ComponentPreview name="quick-start" height={340} />
+
+<Steps>
+<Step>
+
+### Prepare your data
+
+A chart takes an array of objects, sorted by x (oldest first for time data). The x value is read from `date`, `time`
+or `x` by default, and series read their values with accessors, so any shape works:
+
+```ts
+const data = [
+  { date: new Date(2026, 0, 1), views: 1200 },
+  { date: new Date(2026, 0, 2), views: 1340 },
+  // ...
+];
+```
+
+</Step>
+<Step>
+
+### Add a ChartCanvas
+
+`<ChartCanvas>` owns the data, the x axis viewport and the render loop. Without `width` and `height` it fills its
+parent, so give the parent a size.
+
+```tsx
+import { ChartCanvas } from "@reincharts/core";
+
+<div style={{ height: 400 }}>
+  <ChartCanvas data={data}>{/* panes, series, axes */}</ChartCanvas>
+</div>;
+```
+
+</Step>
+<Step>
+
+### Add a pane, a series and axes
+
+A `<Pane>` is a vertical slot with its own y scale. Put series, a `<YAxis>`, a `<Grid>` and a `<Tooltip>` inside it.
+The `<XAxis>` and `<Crosshair>` belong to the whole chart, so they go directly inside `<ChartCanvas>`.
+
+```tsx
+"use client";
+import { ChartCanvas, Pane } from "@reincharts/core";
+import { AreaSeries } from "@reincharts/series";
+import { Grid, XAxis, YAxis } from "@reincharts/axes";
+import { Crosshair } from "@reincharts/coordinates";
+import { Tooltip } from "@reincharts/tooltip";
+
+export function ViewsChart({ data }: { data: { date: Date; views: number }[] }) {
+  return (
+    <ChartCanvas data={data} initialView="fit">
+      <Pane>
+        <Grid />
+        <AreaSeries name="Page views" y="views" curve="monotone" />
+        <YAxis />
+        <Tooltip />
+      </Pane>
+      <XAxis />
+      <Crosshair />
+    </ChartCanvas>
+  );
+}
+```
+
+</Step>
+<Step>
+
+### Interact
+
+Drag to pan, scroll or pinch to zoom, drag the y axis to scale it and double-click it to fit again. Arrow keys,
+`+` / `-`, `Home` and `End` work when the chart has focus. See [Interaction](/docs/concepts/interaction).
+
+</Step>
+</Steps>
+
+## Where to next
+
+<Cards>
+  <Card title="Chart types" href="/docs/chart-types" description="Lines, areas, bars, scatter and more." />
+  <Card title="Data & x modes" href="/docs/concepts/data" description="Time, numeric and category data." />
+  <Card title="Annotations" href="/docs/components/annotations" description="Reference lines, areas and markers." />
+  <Card title="Financial charts" href="/docs/financial" description="Candlesticks, indicators and drawing tools." />
+</Cards>

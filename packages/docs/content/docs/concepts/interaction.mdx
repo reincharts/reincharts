@@ -1,0 +1,95 @@
+---
+title: Interaction
+description: Pan, zoom, scale and keyboard controls, plus the events and hooks to build your own interactions.
+examples: /examples/events
+api: /api/core/use-chart-event
+---
+
+Charts are interactive out of the box, with familiar gestures on mouse, trackpad and touch.
+
+<ComponentPreview name="interaction-events" height={380} />
+
+## Gestures
+
+| Where          | Gesture                   | Effect                                                        |
+| -------------- | ------------------------- | ------------------------------------------------------------- |
+| Plot           | Drag                      | Pan in time; vertically too once the price scale was adjusted |
+| Plot           | Wheel / trackpad scroll   | Zoom around the pointer; horizontal scroll pans               |
+| Plot           | Pinch (trackpad or touch) | Zoom                                                          |
+| Plot (touch)   | Swipe                     | Pan with kinetic scrolling                                    |
+| Price axis     | Drag / wheel              | Scale that price scale (turns its autoscale off)              |
+| Price axis     | Double-click              | Autoscale again                                               |
+| Time axis      | Drag                      | Zoom horizontally                                             |
+| Time axis      | Double-click              | Reset the view                                                |
+| Pane separator | Drag / double-click       | Resize panes / maximize (and restore) the pane below          |
+
+## Keyboard
+
+The chart container is focusable (`tabIndex={0}`). When it has focus:
+
+| Key             | Action                          |
+| --------------- | ------------------------------- |
+| `←` / `→`       | Pan one bar (`Shift`: ten bars) |
+| `↑` / `+` / `=` | Zoom in                         |
+| `↓` / `-`       | Zoom out                        |
+| `Home`          | Jump to the first bar           |
+| `End`           | Jump to the latest bar          |
+
+Your `keydown` listeners run first and can call `preventDefault()` to replace a default.
+
+## Options
+
+| Prop                              | Effect                                                                        |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `pan={false}` / `zoom={false}`    | Disable panning / zooming.                                                    |
+| `interactive={false}`             | Disable every pointer and keyboard interaction (the chart still renders).     |
+| `zoomAnchor`                      | `"mouse"` (default), `"right"`, `"lastVisible"` or a function.                |
+| `zoomMultiplier`                  | Zoom factor per wheel step (default 1.1).                                     |
+| `kineticScroll`                   | Momentum after touch swipes (default true).                                   |
+| `clamp`                           | Keep the data on screen: `true`, `"left"`, `"right"`, `"both"` or a function. |
+| `minBarSpacing` / `maxBarSpacing` | Zoom limits in pixels per bar.                                                |
+| `<Pane yPan={false}>`             | Keep plot drags horizontal even after the price scale was adjusted.           |
+
+## Callbacks
+
+```tsx
+<ChartCanvas
+  data={bars}
+  onVisibleRangeChange={({ from, to, start, end }) => {}}
+  onCrosshairMove={(crosshair) => {}} // null when the pointer leaves
+  onReachStart={(firstX) => {}} // load older data
+  onReachEnd={(lastX) => {}}
+/>
+```
+
+## Events & hooks
+
+Inside the chart, `useChartEvent` subscribes to pointer events translated into chart coordinates: plot-relative `x` / `y`,
+the pane, the nearest data `index`, the `time` under the pointer and `price(scaleId?)`. Event types are `pointerdown`,
+`pointermove`, `pointerup`, `pointerleave`, `drag`, `dragend`, `click`, `dblclick`, `contextmenu`, plus `keydown`,
+`rangechange`, `crosshair` and `datachange`.
+
+```tsx
+function ClickToLog() {
+  useChartEvent("click", (e) => console.log(e.index, e.price(), e.paneId));
+  return null;
+}
+```
+
+`useChartState(selector)` re-renders a component when part of the chart state changes, for example the hovered bar:
+
+```tsx
+const index = useChartState((s) => s.crosshair?.index ?? s.dataLength - 1);
+```
+
+For objects users can hover, click and drag (drawings, draggable price lines), register a hit target with `useHitTarget`.
+Hit targets are tested before panning, from the highest `zIndex` down; `onDrag` events carry the pointer position as
+`e.price()` and `e.time`.
+
+[See the draggable line example →](/examples/draggable-line)
+
+## Syncing charts
+
+Charts with the same `syncId` share the crosshair; add `syncRange` to pan and zoom them together.
+
+[See the synced charts example →](/examples/synced-charts)

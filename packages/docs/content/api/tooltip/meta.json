@@ -1,0 +1,14 @@
+{
+  "title": "@reincharts/tooltip",
+  "pages": [
+    "---Components---",
+    "legend",
+    "tooltip",
+    "tooltip-card",
+    "---Hooks---",
+    "use-legend",
+    "---Reference---",
+    "functions",
+    "types"
+  ]
+}

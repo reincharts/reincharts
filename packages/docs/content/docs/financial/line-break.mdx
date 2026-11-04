@@ -1,0 +1,24 @@
+---
+title: Line break
+description: Three-line break boxes.
+examples: /examples/line-break
+api: /api/series/line-break-series
+---
+
+<ComponentPreview name="line-break" />
+
+## Usage
+
+`lineBreak()` from `@reincharts/indicators` adds a box when the close exceeds the last box, and a reversal box only when
+the close breaks the extreme of the last `lines` boxes (3 by default). `<LineBreakSeries>` draws them.
+
+```tsx
+import { LineBreakSeries } from "@reincharts/series";
+import { lineBreak } from "@reincharts/indicators";
+
+const boxes = useMemo(() => lineBreak(bars, { lines: 3 }), [bars]);
+
+<ChartCanvas data={boxes}>
+  <LineBreakSeries />
+</ChartCanvas>;
+```

@@ -1,0 +1,4 @@
+{
+  "title": "Components",
+  "pages": ["axes", "crosshair", "tooltip", "legend", "annotations", "price-lines", "zoom-and-brush", "drawing-tools"]
+}

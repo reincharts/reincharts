@@ -1,0 +1,38 @@
+---
+title: Price lines
+description: Last-value labels, price lines, edge indicators and current-coordinate dots.
+examples: /examples/price-lines
+api: /api/coordinates/price-line
+---
+
+<ComponentPreview name="price-lines" height={420} />
+
+## Last value
+
+`<LastValueLabel>` shows the last value of **every series in the pane** as a colored label on the price axis. Add `line` (or use `<LastValueLine>`) to draw a dotted line across the plot, and `showName` to show the
+series name. Filter which series get a label with `filter`.
+
+```tsx
+<Pane>
+  <CandlestickSeries />
+  <LastValueLabel line />
+  <YAxis />
+</Pane>
+```
+
+## Price lines
+
+`<PriceLine price={...}>` draws a horizontal line at a fixed price with an axis label and an optional `title`: targets,
+stops, alerts, average entry price.
+
+```tsx
+<PriceLine price={62} title="Target" color="#10b981" />
+```
+
+## Edge indicator
+
+`<EdgeIndicator y="close">` labels the value of the first or last **visible** datum, for any accessor.
+
+## Current coordinate
+
+`<CurrentCoordinate y="close">` draws a dot on a series at the crosshair position.

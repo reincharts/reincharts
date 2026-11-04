@@ -1,0 +1,40 @@
+---
+title: Calculators
+description: Pure indicator functions that work on any array of bars.
+examples: /examples/indicators/custom-indicator
+api: /api/indicators/functions
+---
+
+Every indicator is also a pure function: pass your bars and options, get arrays aligned 1:1 with the input, with
+`undefined` during the warm-up period. They have no dependency on React or the chart, so they also run on a server or
+in a worker.
+
+```ts
+import { bollinger, ema, macd, rsi } from "@reincharts/indicators";
+
+const ema21 = ema(bars, { period: 21 }); // (number | undefined)[]
+const r = rsi(bars, { period: 14, source: "close" });
+const { macd: line, signal, histogram } = macd(bars, { fast: 12, slow: 26, signal: 9 });
+const { upper, middle, lower } = bollinger(bars, { period: 20, multiplier: 2 });
+
+const rows = bars.map((d, i) => ({ ...d, ema21: ema21[i], rsi: r[i] })); // plot with <LineSeries y="ema21" />
+```
+
+## Sources and fields
+
+Single-input calculators take `source`: a price source (`"open"`, `"high"`, `"low"`, `"close"`, `"hl2"`, `"hlc3"`,
+`"ohlc4"`, `"hlcc4"`, `"volume"`, all listed in `priceSources`), a field name or a function. Calculators with a
+smoothing option take a `maType` from `movingAverageTypes`. Calculators that read several fields (ATR, Stochastic,
+VWAP...) accept `open` / `high` / `low` / `close` / `volume` accessors, so any data shape works.
+
+## Reference
+
+| Group           | Functions                                                                                                              |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Moving averages | `sma`, `ema`, `wma`, `tma`, `rma`, `hma`, `vwma`, `movingAverage`                                                      |
+| Volatility      | `bollinger`, `keltner`, `donchian`, `envelope`, `atr`, `trueRange`, `stddev`                                           |
+| Oscillators     | `rsi`, `macd`, `stochastic`, `fastStochastic`, `slowStochastic`, `cci`, `williamsR`, `roc`, `momentum`, `mfi`, `aroon` |
+| Trend           | `sar`, `supertrend`, `dmi`, `adx`, `ichimoku`                                                                          |
+| Volume          | `vwap`, `obv`, `volume`, `forceIndex`, `smoothedForceIndex`                                                            |
+| Other           | `elderRay`, `elderImpulse`, `change`, `compare`                                                                        |
+| Transforms      | `heikinAshi`, `renko`, `kagi`, `pointAndFigure`, `lineBreak` (see [Chart types](/docs/chart-types))                    |

@@ -1,0 +1,76 @@
+{
+  "name": "@reincharts/widget",
+  "version": "2.0.0",
+  "description": "TradingChart: a batteries-included stock chart widget (toolbars, indicators, drawing tools, datafeed) built on Reincharts.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./styles.css": "./dist/styles.css"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reincharts/reincharts.git",
+    "directory": "packages/widget"
+  },
+  "homepage": "https://reincharts.com",
+  "bugs": {
+    "url": "https://github.com/reincharts/reincharts/issues"
+  },
+  "keywords": [
+    "react",
+    "chart",
+    "charts",
+    "financial",
+    "trading",
+    "tradingview",
+    "candlestick",
+    "canvas",
+    "stock",
+    "technical-analysis"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "test": "vitest run --project unit --passWithNoTests",
+    "test:visual": "vitest run --project browser --passWithNoTests"
+  },
+  "dependencies": {
+    "@reincharts/core": "workspace:*",
+    "@reincharts/series": "workspace:*",
+    "@reincharts/indicators": "workspace:*",
+    "@reincharts/axes": "workspace:*",
+    "@reincharts/coordinates": "workspace:*",
+    "@reincharts/tooltip": "workspace:*",
+    "@reincharts/annotations": "workspace:*",
+    "@reincharts/interactive": "workspace:*",
+    "@reincharts/datafeed": "workspace:*"
+  },
+  "devDependencies": {
+    "@reincharts/testing": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  }
+}

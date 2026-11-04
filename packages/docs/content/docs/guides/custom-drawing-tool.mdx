@@ -1,0 +1,65 @@
+---
+title: "Custom drawing tool"
+description: "Build your own drawing tool with defineTool."
+examples: /examples/drawing-tools/custom-tool
+api: /api/interactive/functions#definetool
+---
+
+<ComponentPreview name="custom-drawing-tool" height={440} />
+
+A tool is a plain object: how many points the user places, how to draw the drawing and how to hit-test it. Register it
+with `useDrawings({ tools: [myTool] })` and it gets everything the built-in tools have: toolbar button, placement with
+magnet, selection, drag handles, undo / redo, copy / paste, style toolbar and JSON persistence.
+
+```tsx
+import { withAlpha } from "@reincharts/core";
+import { defineTool, useDrawings } from "@reincharts/interactive";
+
+const timeBand = defineTool({
+  type: "timeBand", // stored in Drawing.type
+  label: "Time Band", // toolbar tooltip
+  group: "custom", // toolbar group (custom groups are appended)
+  icon: <svg viewBox="0 0 18 18">{/* 18×18 icon */}</svg>,
+  points: 2,
+  defaults: { color: "#f59e0b" },
+  styleControls: ["color"],
+  draw(ctx, g, drawing, state) {
+    const [a, b] = g.points; // pane plot pixels
+    if (!a || !b) return; // still being placed
+    ctx.fillStyle = withAlpha(g.color, state.selected ? 0.2 : 0.12);
+    ctx.fillRect(Math.min(a.x, b.x), 0, Math.abs(b.x - a.x), g.height);
+  },
+  hitTest: (g, x) => x >= Math.min(g.points[0].x, g.points[1].x) && x <= Math.max(g.points[0].x, g.points[1].x),
+});
+
+const drawings = useDrawings({ tools: [timeBand] });
+```
+
+## The geometry
+
+`draw` and `hitTest` receive a `Geometry`: the drawing's points converted to pane pixels, the pane size, the resolved
+`color`, the theme, and converters (`x(time)`, `y(price)`, `time(x)`, `price(y)`, `logical(time)`), formatters
+(`formatPrice`, `formatTime`) and `extend(a, b, mode)` for rays. The canvas is translated to the pane plot origin and
+clipped.
+
+## Optional hooks
+
+- `handles(g)` / `dragHandle(g, index, p)`: custom edit handles (a position's target / stop handles).
+- `build(points)`: turn the placed points into the stored ones (positions add the stop).
+- `crossValue(drawing, logical, logicalOf)`: the drawing's price at a bar, to support `onCross` alerts.
+- `editableText` / `textAnchor`: inline text editing.
+- `axisLabels(drawing)`: prices / times always labelled on the axes.
+- `points: "multi"` + `freehand`: paths and brushes.
+
+## Helpers
+
+The helpers used by the built-in tools are exported too:
+
+| Helpers                                                                                              | Purpose                                       |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `strokeOf`, `fillOf`, `segment`, `polyline`, `fillPolygon`, `arrowHead`                              | Draw with the drawing's color, width and dash |
+| `label`, `multiLabel`, `text`, `textBox`, `handle`                                                   | Labels, stats boxes, text and edit handles    |
+| `dist`, `distToSegment`, `nearSegment`, `nearPolyline`, `inRect`, `inPolygon`, `rectOf`, `TOLERANCE` | Hit testing                                   |
+| `extendSegment`, `constrainAngle`, `linearRegression`, `regression`, `lineCross`                     | Rays, 45° snapping, regressions, `crossValue` |
+| `createGeometry`, `createEditor`, `renderOrder`, `drawingId`                                         | The editing engine behind `<Drawings>`        |
+| `icons`                                                                                              | The 18 × 18 icons of the built-in tools       |

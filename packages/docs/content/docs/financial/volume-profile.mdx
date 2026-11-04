@@ -1,0 +1,28 @@
+---
+title: Volume profile
+description: Horizontal histogram of traded volume by price, for the visible range or per session.
+examples: /examples/volume-profile
+api: /api/series/volume-profile-series
+---
+
+<ComponentPreview name="volume-profile" />
+
+## Usage
+
+```tsx
+<VolumeProfileSeries bins={30} />
+<CandlestickSeries />
+```
+
+The profile covers the visible bars and updates while you pan and zoom. Each bar's volume is spread over its low-high
+range (or assigned to a single `price`), split into up and down volume, and the row with the most volume, the
+**point of control**, is drawn as a line (`showPoc`, `pocColor`). `side` and `maxWidth` place the rows; the
+`volumeProfile()` function returns the same rows for your own drawing.
+
+## Session profiles
+
+`sessionStart(d, i, prev)` starts a new profile whenever it returns true, for example on every new trading day. The
+example aggregates 1-minute bars into 15-minute bars with `aggregateBars` from `@reincharts/datafeed` and draws one
+profile per day.
+
+[See the session volume profiles example →](/examples/session-profiles)

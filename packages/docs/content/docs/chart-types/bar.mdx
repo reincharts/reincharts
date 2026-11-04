@@ -1,0 +1,51 @@
+---
+title: Bars & columns
+description: Vertical bars - single, grouped, stacked, overlaid and histograms.
+examples: /examples/bar
+api: /api/series/bar-series
+---
+
+Bar charts compare values across categories or time buckets. Use grouped bars to compare series side by side and
+stacked bars to show how parts add up to a total.
+
+<ComponentPreview name="bar" />
+
+## Usage
+
+```tsx
+<ChartCanvas data={data} xAccessor={(d) => d.month}>
+  <Pane>
+    <BarSeries y="revenue" radius={4} />
+  </Pane>
+</ChartCanvas>
+```
+
+Bars grow from `base` (default 0). When every value is non-negative they sit on the bottom of the pane; with negative
+values they grow down from 0. Use `y0` for floating (range) bars, `radius` for rounded ends and `widthRatio` /
+`maxWidth` for the width.
+
+## Histograms
+
+`fill` can be a function of the datum (and the theme), e.g. to color positive and negative values.
+
+[See the Histogram example →](/examples/histogram)
+
+## Grouped bars
+
+`<GroupedBarSeries ys={["a", "b", "c"]}>` draws one bar per accessor side by side in each slot. Colors default to the
+theme palette.
+
+[See the grouped bars example →](/examples/grouped-bars)
+
+## Stacked bars
+
+`<StackedBarSeries>` stacks the values; `offset="percent"` normalises each stack to 100%.
+
+[See the stacked bars example →](/examples/stacked-bars)
+
+## Overlaid bars
+
+`<OverlayBarSeries>` draws the bars of a slot over each other from the same base, the largest at the back, for
+comparing values that share a scale (budget vs actual, this year vs last year).
+
+[See the toggle series example →](/examples/legend-toggle)

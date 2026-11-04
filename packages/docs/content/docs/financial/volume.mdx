@@ -1,0 +1,36 @@
+---
+title: Volume & columns
+description: Volume bars on an overlay scale or in their own pane, and close-price columns.
+examples: /examples/volume-overlay
+api: /api/series/volume-series
+---
+
+## Volume overlay
+
+The classic layout: volume bars at the bottom of the price pane. Put `<VolumeSeries>` on its own scale (any id without
+an axis is an overlay) and give that scale a large top margin, so the bars use only the bottom fifth of the pane.
+
+<ComponentPreview name="price-scale-overlay" />
+
+```tsx
+<Pane scales={{ volume: { margins: { top: 0.8, bottom: 0 } } }}>
+  <VolumeSeries scale="volume" />
+  <CandlestickSeries />
+</Pane>
+```
+
+Bars are colored by the bar's direction (`close >= open`) with the theme's `volume.up` / `volume.down` colors. Because
+volume is never negative, bars grow from the bottom of the pane.
+
+## Volume pane
+
+Or give volume a pane of its own, with compact axis labels.
+
+[See the volume pane example →](/examples/volume-pane)
+
+## Columns
+
+`<ColumnsSeries>` draws one column per close price, colored by the change from the
+previous bar.
+
+[See the Columns example →](/examples/columns)

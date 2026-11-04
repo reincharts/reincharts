@@ -1,0 +1,82 @@
+---
+title: Overview
+description: "30+ technical indicators: pure calculators, a definition registry and the Indicator component."
+examples: /examples/indicators
+api: /api/indicators
+---
+
+<ComponentPreview name="indicators-overview" height={520} />
+
+`@reincharts/indicators` (also exported by `reincharts`) has three layers:
+
+- **Calculators**: pure, single-pass functions such as `sma`, `ema`, `rsi`, `macd`, `bollinger`, `ichimoku`, `vwap`...
+  Each returns arrays aligned 1:1 with your data, `undefined` during warm-up. Use them anywhere, even on a server. See
+  [Calculators](/docs/indicators/calculators).
+- **Definitions**: a registry (`indicators.rsi`, `indicators.macd`... 32 of them) describing each indicator's inputs,
+  outputs, levels, fills and scale. Each definition is also exported on its own (`rsiIndicator`, `macdIndicator`...).
+  Add your own with [`defineIndicator`](/docs/guides/custom-indicator).
+- **`<Indicator definition={...} />`** renders any definition: lines, histograms, areas, dots, step lines, levels and
+  band fills, with autoscale, a legend item ("RSI 14 close") and magnet support.
+
+```tsx
+import { Indicator, indicators, MovingAverage, RSI } from "@reincharts/indicators";
+
+<ChartCanvas data={bars}>
+  <Pane size={3}>
+    <CandlestickSeries />
+    <MovingAverage type="ema" period={21} />
+    <Indicator definition={indicators.bollinger} inputs={{ multiplier: 2.5 }} />
+  </Pane>
+  <Pane>
+    <RSI />
+  </Pane>
+</ChartCanvas>;
+```
+
+## Overlays and panes
+
+Overlays (moving averages, bands, Ichimoku, SAR, VWAP...) go in the price pane and share its scale. Oscillators (RSI,
+MACD, Stochastic...) go in their **own `<Pane>`**. Their levels and band fills (RSI 30 / 70) are part of the autoscale;
+pass `fitDomain` to always show the full range (RSI 0-100), or pin it with
+`<Pane scales={{ right: { domain: [0, 100] } }}>`. Each definition's `overlay` flag says which kind it is.
+
+## Convenience components
+
+`MovingAverage`, `BollingerBands`, `MACD`, `RSI`, `Stochastic`, `ATR`, `ElderRay`, `ForceIndex` and `SAR` are
+`<Indicator>` with typed inputs as props:
+
+```tsx
+<MACD fast={8} slow={21} signal={5} />
+<Indicator definition={indicators.macd} inputs={{ fast: 8, slow: 21, signal: 5 }} /> {/* same */}
+<Stochastic variant="slow" />
+```
+
+[See the indicator components example →](/examples/indicators/components)
+
+## Styling
+
+`styles` overrides output colors, widths and visibility by output key; `showLevels` / `showFills` toggle levels and
+fills; `name` replaces the legend name.
+
+```tsx
+<RSI styles={{ rsi: { color: "#f59e0b", width: 2 } }} showFills={false} />
+```
+
+## Browse by category
+
+<Cards>
+  <Card
+    title="Moving averages"
+    href="/docs/indicators/moving-averages"
+    description="SMA, EMA, WMA, TMA, HMA, VWMA, RMA."
+  />
+  <Card title="Bands & channels" href="/docs/indicators/bands" description="Bollinger, Keltner, Donchian, Envelope." />
+  <Card
+    title="Oscillators"
+    href="/docs/indicators/oscillators"
+    description="RSI, MACD, Stochastic, CCI, Williams %R..."
+  />
+  <Card title="Trend" href="/docs/indicators/trend" description="Ichimoku, Supertrend, SAR, ADX / DMI, Aroon." />
+  <Card title="Volume" href="/docs/indicators/volume" description="VWAP, Volume, OBV, MFI, Force Index." />
+  <Card title="Calculators" href="/docs/indicators/calculators" description="Every pure function and its options." />
+</Cards>

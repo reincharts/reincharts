@@ -1,0 +1,18 @@
+---
+title: "Shapes"
+description: "Rectangles, ellipses, triangles and paths to mark areas of a chart."
+examples: /examples/drawing-tools/shapes
+api: /api/interactive/constants#rectangle
+---
+
+<ComponentPreview name="drawings-shapes" height={460} />
+
+| Tool      | Type        | Points                                             |
+| --------- | ----------- | -------------------------------------------------- |
+| Rectangle | `rectangle` | 2                                                  |
+| Ellipse   | `ellipse`   | 2                                                  |
+| Triangle  | `triangle`  | 3                                                  |
+| Path      | `path`      | Click each point, double-click / `Enter` to finish |
+
+Shapes take a `fill` (any CSS color, use alpha for transparency) in addition to the line style. Rectangles and
+ellipses can show centered `text`. For hand-drawn strokes see [Freehand](/docs/components/drawing-tools/freehand).

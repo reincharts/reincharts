@@ -1,0 +1,17 @@
+---
+title: HLC area
+description: High, low and close drawn as a filled range around the close line.
+examples: /examples/hlc-area
+api: /api/series/hlc-area-series
+---
+
+<ComponentPreview name="hlc-area" />
+
+## Usage
+
+```tsx
+<HLCAreaSeries />
+```
+
+The area between high and close is filled with `upColor`, the area between close and low with `downColor`, and the
+close is drawn as a line on top. It reads `high`, `low` and `close` by default.

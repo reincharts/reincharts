@@ -1,0 +1,4 @@
+{
+  "title": "Indicators",
+  "pages": ["index", "moving-averages", "bands", "oscillators", "trend", "volume", "calculators"]
+}

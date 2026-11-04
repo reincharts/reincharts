@@ -1,0 +1,4 @@
+{
+  "title": "TradingChart widget",
+  "pages": ["index", "state", "indicators", "layouts", "theming"]
+}

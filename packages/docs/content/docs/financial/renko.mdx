@@ -1,0 +1,27 @@
+---
+title: Renko
+description: Fixed-size bricks that ignore time.
+examples: /examples/renko
+api: /api/series/renko-series
+---
+
+<ComponentPreview name="renko" />
+
+## Usage
+
+Renko bricks are built by the `renko()` transform from `@reincharts/indicators` and drawn by `<RenkoSeries>`. A
+new brick is added each time the price moves one box size beyond the last brick; reversals need two boxes. The box size
+is a price amount or `"atr"` (default, the ATR at the last bar).
+
+```tsx
+import { RenkoSeries } from "@reincharts/series";
+import { renko } from "@reincharts/indicators";
+
+const bricks = useMemo(() => renko(bars, { boxSize: 0.5 }), [bars]);
+
+<ChartCanvas data={bricks}>
+  <RenkoSeries />
+</ChartCanvas>;
+```
+
+The last brick is still forming (`fullyFormed: false`) and drawn hollow; pass `partial: false` to `renko()` to drop it.

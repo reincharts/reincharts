@@ -1,0 +1,54 @@
+---
+title: "Saving & loading"
+description: "Persist drawings as JSON, in controlled or uncontrolled mode."
+examples: /examples/drawing-tools/saving
+api: /api/interactive/use-drawings
+---
+
+<ComponentPreview name="drawings-persistence" height={480} />
+
+Drawings are plain JSON (anchor points in data units plus a style), so they can be stored anywhere: local storage, your
+database, a URL.
+
+## Uncontrolled
+
+Pass the saved drawings as `defaultDrawings` and save on every change:
+
+```tsx
+const drawings = useDrawings({
+  defaultDrawings: JSON.parse(localStorage.getItem("drawings") ?? "[]"),
+  onChange: (all) => localStorage.setItem("drawings", JSON.stringify(all)),
+});
+```
+
+## Controlled
+
+Keep the drawings in your own state (React state, Redux, Zustand, a server cache) with `drawings` + `onChange`. Undo /
+redo, copy / paste and every edit go through `onChange`:
+
+```tsx
+const [items, setItems] = useState<readonly Drawing[]>(initial);
+const drawings = useDrawings({ drawings: items, onChange: setItems });
+```
+
+## toJSON and load
+
+`drawings.toJSON()` returns `{ version: 1, drawings }`, and `drawings.load(json)` accepts that object, a plain array or
+a JSON string. Loading is recorded in the undo history.
+
+```ts
+await fetch(`/api/layouts/${id}`, { method: "PUT", body: JSON.stringify(drawings.toJSON()) });
+drawings.load(await (await fetch(`/api/layouts/${id}`)).json());
+```
+
+Drawings reference panes by id, so give your `<Pane>`s stable `id`s. Indicators and panes are plain props of your
+components; save their configuration next to the drawings (e.g. `{ drawings, indicators: [{ id: "rsi", inputs }] }`).
+
+## The whole chart layout
+
+With [`<TradingChart>`](/docs/trading-chart), `ref.save()` returns a `TradingChartState` with everything at once:
+symbol, interval, chart type, scale mode, indicators, drawings, compare symbols, pane sizes, visible range, theme and
+multi-chart layout. `ref.load(state)` restores it. See [State, save & load](/docs/trading-chart/state) for the JSON
+format and controlled mode.
+
+[See the saving state example →](/examples/trading-chart/state)

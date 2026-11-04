@@ -1,0 +1,48 @@
+---
+title: "Indicators"
+description: "Default indicators, controlled indicators and custom indicator definitions."
+examples: /examples/trading-chart/custom-indicator
+api: /api/widget/trading-chart
+---
+
+<ComponentPreview name="widget-custom-indicator" height={560} />
+
+## Default indicators
+
+`defaultIndicators` takes registry ids or configs. Overlays go on the price pane, oscillators get their own pane; set
+`paneId` to share a pane.
+
+```tsx
+<TradingChart
+  datafeed={feed}
+  defaultIndicators={[
+    "ema",
+    { definitionId: "ema", inputs: { period: 50 }, styles: { ma: { color: "#8b5cf6" } } },
+    { definitionId: "rsi" },
+    { definitionId: "stochastic", paneId: "pane-rsi-1" }, // share the RSI pane
+  ]}
+/>
+```
+
+Users add, edit (settings dialog), hide and remove indicators from the toolbar and legends. Observe changes with
+`onIndicatorsChange`, or control the list with `indicators`. The ref's `addIndicator` / `removeIndicator` work too.
+
+## The indicators dialog
+
+The **Indicators** button opens a searchable list of every definition, grouped into Custom, Trend, Momentum,
+Volatility, Volume and Other (the definition's `category`). Clicking a row adds the indicator and keeps the dialog
+open, so several can be added in a row; `Enter` adds the first match of the search. A badge counts the instances
+already on the chart.
+
+Above the categories, **On chart** lists the indicators of the active chart with their current inputs ("EMA 50
+close"), each with hide / show, settings and remove buttons, so the dialog doubles as an indicator manager.
+
+## Custom indicators
+
+Pass definitions created with [`defineIndicator`](/docs/guides/custom-indicator) as `extraIndicators`. They are listed
+under "Custom" in the indicators dialog, get settings dialogs from their `inputs`, and can be used in
+`defaultIndicators` and saved layouts by id:
+
+```tsx
+<TradingChart extraIndicators={[percentB]} defaultIndicators={[{ definitionId: "percentB" }]} />
+```

@@ -1,0 +1,12 @@
+{
+  "title": "TradingChart widget",
+  "pages": [
+    "index",
+    "minimal",
+    "layouts",
+    "state",
+    "custom-indicator",
+    "your-data",
+    "main-series"
+  ]
+}
